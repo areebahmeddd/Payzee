@@ -1,0 +1,13 @@
+# Virtual environment files
+.venv/
+__pycache__/
+
+# IDE-related files
+.vscode/
+.idea/
+
+# Database files
+firebase-config.json
+
+# Local development files
+.env
