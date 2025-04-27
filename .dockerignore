@@ -1,0 +1,18 @@
+# Python-specific files
+.venv/
+__pycache__/
+.ruff_cache/
+
+# Project-specific files
+tests/
+docs/
+.github/
+.env
+.env.example
+.gitignore
+.pre-commit-config.yaml
+firebase-config.json
+README.md
+
+# Docker-specific files
+Dockerfile
