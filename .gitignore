@@ -11,3 +11,4 @@ firebase-config.json
 
 # Local development files
 .env
+.ruff_cache
