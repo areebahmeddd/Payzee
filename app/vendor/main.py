@@ -97,6 +97,9 @@ async def generate_vendor_qr_code(vendor_id: str) -> Dict[str, Any]:
         "location": {
             "latitude": vendor_data.get("location", {}).get("latitude", 0.0),
             "longitude": vendor_data.get("location", {}).get("longitude", 0.0),
+            "country": vendor_data.get("location", {}).get("country", ""),
+            "state": vendor_data.get("location", {}).get("state", ""),
+            "city": vendor_data.get("location", {}).get("city", ""),
         },
     }
 

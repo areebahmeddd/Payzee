@@ -38,6 +38,8 @@ class VendorProfileBase(ProfileBase):
     business_name: str
     business_description: Optional[str] = None
     category: Optional[str] = None
+    location: str
+    status: str = "pending"
 
 
 class VendorProfile(VendorProfileBase):
