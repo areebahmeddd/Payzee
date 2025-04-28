@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth import router as auth_router
 from app.user.main import router as user_router
 from app.vendor.main import router as vendor_router
+from app.government.main import router as government_router
 
 app = FastAPI(
     title="Payzee API",
@@ -21,6 +22,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(user_router, prefix="/api/v1/user")
 app.include_router(vendor_router, prefix="/api/v1/vendor")
+app.include_router(government_router, prefix="/api/v1/government")
 
 
 @app.get("/health")

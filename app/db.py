@@ -11,6 +11,7 @@ db = firestore.client()
 
 users_collection = db.collection("users")
 vendors_collection = db.collection("vendors")
+government_collection = db.collection("government")
 
 
 # User operations
@@ -265,3 +266,73 @@ def update_vendor_profile(vendor_id: str, profile_data: Dict[str, Any]) -> None:
         vendor_ref.update(account_info_updates)
     if general_updates:
         vendor_ref.update(general_updates)
+
+
+# Government schemes collection
+def create_government_scheme(scheme_data: Dict[str, Any]) -> str:
+    """Create a government scheme in Firestore and return the scheme ID"""
+    scheme_ref = government_collection.document()
+
+    # Add creation timestamp
+    scheme_data["created_at"] = datetime.now().isoformat()
+
+    # Store the data
+    data_to_store = {"id": scheme_ref.id, **scheme_data}
+
+    scheme_ref.set(data_to_store)
+    return scheme_ref.id
+
+
+def get_government_scheme(scheme_id: str) -> Dict[str, Any]:
+    """Get a government scheme by ID"""
+    scheme_doc = government_collection.document(scheme_id).get()
+    if scheme_doc.exists:
+        return scheme_doc.to_dict()
+    return None
+
+
+def get_all_government_schemes() -> List[Dict[str, Any]]:
+    """Get all government schemes"""
+    schemes = government_collection.get()
+    return [scheme.to_dict() for scheme in schemes]
+
+
+def update_government_scheme(scheme_id: str, update_data: Dict[str, Any]) -> None:
+    """Update a government scheme"""
+    scheme_ref = government_collection.document(scheme_id)
+    scheme_ref.update(update_data)
+
+
+def delete_government_scheme(scheme_id: str) -> None:
+    """Delete a government scheme"""
+    scheme_ref = government_collection.document(scheme_id)
+    scheme_ref.delete()
+
+
+def get_schemes_by_status(status: str) -> List[Dict[str, Any]]:
+    """Get all schemes with a specific status"""
+    schemes = government_collection.where("status", "==", status).get()
+    return [scheme.to_dict() for scheme in schemes]
+
+
+def get_schemes_by_eligibility(criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get schemes matching specific eligibility criteria"""
+    # This is a complex query that might need to be adjusted based on specific requirements
+    schemes = government_collection.get()
+    matching_schemes = []
+
+    for scheme in schemes:
+        scheme_data = scheme.to_dict()
+        eligibility = scheme_data.get("eligibility_criteria", {})
+
+        # Check if scheme matches all provided criteria
+        matches = True
+        for key, value in criteria.items():
+            if key in eligibility and eligibility[key] != value:
+                matches = False
+                break
+
+        if matches:
+            matching_schemes.append(scheme_data)
+
+    return matching_schemes
