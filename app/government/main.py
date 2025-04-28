@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException
+import firebase_admin
+from firebase_admin import credentials, firestore
+from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List, Optional
 import uuid
 
@@ -9,6 +11,8 @@ from .models import (
     SchemeAllocation,
     WalletAllocationResponse,
     GovernmentWallet,
+    VendorProfile,
+    User,
 )
 from ..db import (
     create_government_scheme,
@@ -24,8 +28,15 @@ from ..db import (
     update_user_wallet,
     get_user_wallet,
 )
+from ..auth import get_current_user
 
 router = APIRouter(tags=["government"])
+
+if not firebase_admin._apps:
+    cred = credentials.Certificate("firebase-config.json")
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 
 @router.post("/schemes", response_model=GovernmentScheme)
@@ -171,3 +182,19 @@ async def get_user_government_wallet(user_id: str):
         allocated_amt=wallet.get("allocated_amt", 0),
         remaining_amt=wallet.get("remaining_amt", 0),
     )
+
+
+@router.get("/vendor-profiles", response_model=List[VendorProfile])
+async def get_all_vendor_profiles(current_user: User = Depends(get_current_user)):
+    """Get all vendor profiles"""
+    # Check if the current user is a government official
+    if current_user.role != "government":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only government officials can access this endpoint",
+        )
+
+    # Fetch all vendor profiless from the database
+    vendor_profiles = await db.vendor_profiles.find().to_list(1000)
+
+    return vendor_profiles
