@@ -23,7 +23,8 @@ from ..db import (
     get_user_transactions,
     update_user_wallet,
     get_user_wallet,
-    get_all_vendors_account_info,
+    get_all_vendors,
+    get_all_transactions,
 )
 
 router = APIRouter(tags=["government"])
@@ -177,8 +178,18 @@ async def get_user_government_wallet(user_id: str):
 @router.get("/vendor-profiles")
 async def get_all_vendor_profiles():
     """Get account information for all vendors"""
-    vendors_account_info = get_all_vendors_account_info()
+    vendors_account_info = get_all_vendors()
     if not vendors_account_info:
-        return []
+        return {"message": "No vendors found"}
 
     return vendors_account_info
+
+
+@router.get("/transactions")
+async def get_all_transaction_data():
+    """Get all transactions"""
+    transactions = get_all_transactions()
+    if not transactions:
+        return {"message": "No transactions found"}
+
+    return transactions

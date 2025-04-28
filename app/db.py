@@ -268,13 +268,8 @@ def update_vendor_profile(vendor_id: str, profile_data: Dict[str, Any]) -> None:
         vendor_ref.update(general_updates)
 
 
-def get_all_vendors_account_info() -> List[Dict[str, Any]]:
-    """
-    Retrieves account information for all vendors from Firestore.
-
-    Returns:
-        List of dictionaries containing vendor account information.
-    """
+def get_all_vendors() -> List[Dict[str, Any]]:
+    """Get account information for all vendors"""
     vendors_docs = vendors_collection.stream()
 
     vendors_account_info = []
@@ -358,3 +353,17 @@ def get_schemes_by_eligibility(criteria: Dict[str, Any]) -> List[Dict[str, Any]]
             matching_schemes.append(scheme_data)
 
     return matching_schemes
+
+
+def get_all_transactions() -> List[Dict[str, Any]]:
+    """Get all transactions from all users"""
+    transactions_collection = db.collection("transactions")
+    transactions_docs = transactions_collection.stream()
+
+    transactions_list = []
+    for transaction_doc in transactions_docs:
+        transaction_data = transaction_doc.to_dict()
+        transaction_info = {"transaction_id": transaction_doc.id, **transaction_data}
+        transactions_list.append(transaction_info)
+
+    return transactions_list
