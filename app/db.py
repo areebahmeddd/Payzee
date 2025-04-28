@@ -268,6 +268,28 @@ def update_vendor_profile(vendor_id: str, profile_data: Dict[str, Any]) -> None:
         vendor_ref.update(general_updates)
 
 
+def get_all_vendors_account_info() -> List[Dict[str, Any]]:
+    """
+    Retrieves account information for all vendors from Firestore.
+
+    Returns:
+        List of dictionaries containing vendor account information.
+    """
+    vendors_docs = vendors_collection.stream()
+
+    vendors_account_info = []
+    for vendor_doc in vendors_docs:
+        vendor_data = vendor_doc.to_dict()
+        if "account_info" in vendor_data:
+            vendor_info = {
+                "vendor_id": vendor_doc.id,
+                "account_info": vendor_data["account_info"],
+            }
+            vendors_account_info.append(vendor_info)
+
+    return vendors_account_info
+
+
 # Government schemes collection
 def create_government_scheme(scheme_data: Dict[str, Any]) -> str:
     """Create a government scheme in Firestore and return the scheme ID"""
