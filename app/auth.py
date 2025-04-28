@@ -44,6 +44,7 @@ async def register_user(user_data: UserCreate):
             "full_name": None,
             "phone_number": None,
             "address": None,
+            "aadhaar_number": user_data.aadhaar_number,
         }
 
         if user_type == "user":
@@ -52,6 +53,9 @@ async def register_user(user_data: UserCreate):
             user_dict["business_name"] = ""
             user_dict["business_description"] = None
             user_dict["category"] = None
+            user_dict[
+                "inventory"
+            ] = []  # Initialize empty inventory within vendor document
             user_id = create_vendor(user_dict)
 
         return {

@@ -6,10 +6,11 @@ from typing import Any, Dict, List
 
 import qrcode
 import firebase_admin
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from firebase_admin import credentials, firestore
 
 from .models import InventoryItem, TransactionCreate
+from .utils import get_vendor_by_id
 
 if not firebase_admin._apps:
     cred = credentials.Certificate("firebase-config.json")
@@ -23,20 +24,14 @@ router = APIRouter(tags=["vendor"])
 @router.get("/profile/{vendor_id}")
 async def get_vendor_profile(vendor_id: str) -> Dict[str, Any]:
     """Get vendor profile information."""
-    vendor_doc = db.collection("vendors").document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
-
-    return vendor_doc.to_dict()
+    vendor_data = get_vendor_by_id(vendor_id)
+    return vendor_data.get("account_info", {})
 
 
 @router.get("/balance/{vendor_id}")
 async def get_vendor_balance(vendor_id: str) -> Dict[str, Any]:
     """Get vendor balance information."""
-    vendor_doc = db.collection("vendors").document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
-    vendor_data = vendor_doc.to_dict()
+    vendor_data = get_vendor_by_id(vendor_id)
 
     return {
         "vendor_id": vendor_id,
@@ -47,49 +42,61 @@ async def get_vendor_balance(vendor_id: str) -> Dict[str, Any]:
 @router.get("/inventory/{vendor_id}")
 async def get_vendor_inventory(vendor_id: str) -> List[Dict[str, Any]]:
     """Get all inventory items for a vendor."""
-    inventory_ref = db.collection("inventory").where("vendor_id", "==", vendor_id)
-    items = [doc.to_dict() for doc in inventory_ref.stream()]
+    vendor_data = get_vendor_by_id(vendor_id)
 
-    return items
+    inventory_info = vendor_data.get("inventory_info", {})
+    return inventory_info.get("items", [])
 
 
 @router.post("/inventory/{vendor_id}")
 async def add_inventory_item(vendor_id: str, item: InventoryItem) -> Dict[str, Any]:
     """Add a new inventory item for a vendor."""
-    vendor_doc = db.collection("vendors").document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
+    vendor_data = get_vendor_by_id(vendor_id)
+
+    inventory_info = vendor_data.get("inventory_info", {})
+    items = inventory_info.get("items", [])
+
+    # Generate an item_id for the new inventory item
+    item_id = f"item_{len(items) + 1}_{datetime.now(timezone.utc).timestamp():.0f}"
 
     new_item = item.model_dump()
     new_item.update(
         {
-            "vendor_id": vendor_id,
+            "item_id": item_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
-    doc_ref = db.collection("inventory").document()
-    new_item["item_id"] = doc_ref.id
-    doc_ref.set(new_item)
+    # Add to inventory items
+    items.append(new_item)
 
-    return {"status": "success", "item_id": doc_ref.id}
+    # Update vendor document with the new inventory
+    db.collection("vendors").document(vendor_id).update(
+        {
+            "inventory_info.items": items,
+            "inventory_info.last_updated": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+
+    return {"status": "success", "item_id": item_id}
 
 
 @router.get("/qr-code/{vendor_id}")
 async def generate_vendor_qr_code(vendor_id: str) -> Dict[str, Any]:
     """Generate a QR code containing vendor metadata."""
-    vendor_doc = db.collection("vendors").document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
-    vendor_data = vendor_doc.to_dict()
+    vendor_data = get_vendor_by_id(vendor_id)
+
+    account_info = vendor_data.get("account_info", {})
 
     qr_data = {
         "vendor_id": vendor_id,
-        "license": vendor_data.get("license", ""),
-        "name": vendor_data.get("name", ""),
-        "categories": vendor_data.get("categories", []),
+        "business_name": account_info.get("business_name", ""),
+        "category": account_info.get("category", ""),
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "location": vendor_data.get("location", {}),
+        "location": {
+            "latitude": vendor_data.get("location", {}).get("latitude", 0.0),
+            "longitude": vendor_data.get("location", {}).get("longitude", 0.0),
+        },
     }
 
     qr = qrcode.QRCode(
@@ -119,9 +126,8 @@ async def verify_transaction(
     vendor_id: str, transaction: TransactionCreate
 ) -> Dict[str, Any]:
     """Verify and process a new transaction."""
-    vendor_doc = db.collection("vendors").document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
+    # Just verify vendor exists
+    get_vendor_by_id(vendor_id)
 
     transaction_data = transaction.model_dump()
     transaction_data.update(

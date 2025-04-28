@@ -1,14 +1,15 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional
 
 
 # Inventory models
 class InventoryItem(BaseModel):
     name: str
+    description: Optional[str] = None
+    price: float
     category: str
-    quantity: float
-    unit: str
-    unit_price: float
+    available: bool = True
+    image_url: Optional[str] = None
 
 
 # Transaction models
@@ -20,7 +21,6 @@ class TransactionItem(BaseModel):
 
 
 class TransactionCreate(BaseModel):
-    token_id: str
     user_id: str
     amount: float
-    items: List[TransactionItem]
+    category: str
