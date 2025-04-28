@@ -12,6 +12,7 @@ docs/
 .gitignore
 .pre-commit-config.yaml
 firebase-config.json
+LICENSE
 README.md
 
 # Docker-specific files
