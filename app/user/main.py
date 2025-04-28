@@ -215,3 +215,13 @@ async def process_qr_code(
         "category": category,
         "remaining_wallet_amount": result.get("remaining_amt", 0),
     }
+
+
+@router.get("/{user_id}")
+async def get_user(user_id: str) -> Dict[str, Any]:
+    """Get user information."""
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
