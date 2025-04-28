@@ -39,6 +39,7 @@ async def get_vendor_balance(vendor_id: str) -> Dict[str, Any]:
     }
 
 
+# TODO: This is returning [] status 200 OK for wrong body
 @router.get("/inventory/{vendor_id}")
 async def get_vendor_inventory(vendor_id: str) -> List[Dict[str, Any]]:
     """Get all inventory items for a vendor."""
@@ -81,11 +82,11 @@ async def add_inventory_item(vendor_id: str, item: InventoryItem) -> Dict[str, A
     return {"status": "success", "item_id": item_id}
 
 
+# TODO: Check if this goes as an image or a string
 @router.get("/qr-code/{vendor_id}")
 async def generate_vendor_qr_code(vendor_id: str) -> Dict[str, Any]:
     """Generate a QR code containing vendor metadata."""
     vendor_data = get_vendor_by_id(vendor_id)
-
     account_info = vendor_data.get("account_info", {})
 
     qr_data = {
@@ -121,6 +122,7 @@ async def generate_vendor_qr_code(vendor_id: str) -> Dict[str, Any]:
     }
 
 
+# TODO: This is returning [] status 200 OK for wrong body
 @router.post("/transactions/verify/{vendor_id}")
 async def verify_transaction(
     vendor_id: str, transaction: TransactionCreate

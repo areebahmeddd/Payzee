@@ -57,6 +57,7 @@ async def get_user_wallet_endpoint(user_id: str) -> Dict[str, Any]:
     }
 
 
+# TODO: This should be done by government admin
 @router.post("/wallet/{user_id}")
 async def update_wallet_item(
     user_id: str, wallet_item: Dict[str, Any]
@@ -72,6 +73,7 @@ async def update_wallet_item(
     return {"status": "success", "wallet": updated_wallet}
 
 
+# TODO: Broken as hell
 @router.get("/transactions/{user_id}")
 async def get_user_transactions_endpoint(user_id: str) -> List[Dict[str, Any]]:
     """Get all transactions for a user."""
@@ -104,18 +106,12 @@ async def add_transaction_endpoint(
     return result
 
 
+# TODO: 422 Unprocessable Entity??
 @router.post("/scan-qr")
 async def process_qr_code(
     qr_data: Dict[str, Any], user_id: str, amount: float, category: str
 ) -> Dict[str, Any]:
-    """
-    Process QR code scan and validate transaction based on vendor category and user wallet.
-
-    - qr_data: The data extracted from the QR code scan
-    - user_id: The ID of the user making the transaction
-    - amount: The amount to be spent
-    - category: The spending category (food, education, etc.)
-    """
+    """Process a scanned QR code and validate the transaction."""
     # Get user data to check wallet allowances
     user = get_user_by_id(user_id)
     if not user:

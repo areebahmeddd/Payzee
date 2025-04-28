@@ -248,6 +248,7 @@ def update_vendor_profile(vendor_id: str, profile_data: Dict[str, Any]) -> None:
         "business_name",
         "business_description",
         "category",
+        "license_type",
     ]
 
     account_info_updates = {}
