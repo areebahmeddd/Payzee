@@ -38,6 +38,7 @@ async def get_user_balance(user_id: str) -> Dict[str, Any]:
         "allocated_amt": user.get("allocated_amt", 0),
         "remaining_amt": user.get("remaining_amt", 0),
         "personal_wallet": user.get("personal_wallet", 0),
+        "govt_wallet": user.get("govt_wallet", []),
     }
 
 
