@@ -8,6 +8,7 @@ from app.db import (
     update_user_wallet,
     get_user_transactions,
     add_user_transaction,
+    get_all_government_schemes,
 )
 from app.vendor.utils import get_vendor_by_id
 from app.db import vendors_collection, db
@@ -215,6 +216,21 @@ async def process_qr_code(
         "category": category,
         "remaining_wallet_amount": result.get("remaining_amt", 0),
     }
+
+
+@router.get("/eligible-schemes", response_model=List[dict])
+async def get_eligible_schemes(user_id: str):
+    """Get all government schemes"""
+    # Get user data
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get all government schemes
+    all_schemes = get_all_government_schemes()
+
+    # Simply return all schemes without filtering for eligibility
+    return all_schemes
 
 
 @router.get("/{user_id}")

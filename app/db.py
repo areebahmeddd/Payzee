@@ -308,10 +308,20 @@ def get_government_scheme(scheme_id: str) -> Dict[str, Any]:
     return None
 
 
-def get_all_government_schemes() -> List[Dict[str, Any]]:
-    """Get all government schemes"""
-    schemes = government_collection.get()
-    return [scheme.to_dict() for scheme in schemes]
+def get_all_government_schemes():
+    """
+    Get all government schemes from the database
+
+    Returns:
+        list: List of all government schemes
+    """
+    schemes = []
+    scheme_docs = db.collection("government").get()
+    for doc in scheme_docs:
+        scheme_data = doc.to_dict()
+        scheme_data["scheme_id"] = doc.id
+        schemes.append(scheme_data)
+    return schemes
 
 
 def update_government_scheme(scheme_id: str, update_data: Dict[str, Any]) -> None:
