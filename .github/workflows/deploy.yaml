@@ -1,15 +1,21 @@
-name: Skip Deployment
+name: Deploy to DigitalOcean
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'app/**'
+      - 'docker/**'
+      - 'middleware/**'
+      - 'models/**'
+      - 'routes/**'
+      - 'app.py'
+      - 'db.py'
       - 'pyproject.toml'
       - 'poetry.lock'
-      - 'Dockerfile'
+      - 'docker-compose.yaml'
       - '.github/workflows/deploy.yaml'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,5 +26,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Skip deployment
-      run: echo "Deployment skipped."
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+    #   - name: Create .env file
+    #     run: |
+    #       echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" > .env
+    #       echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
+
+      - name: Build & push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: areebahmeddd/payzee-api
+          tags: latest
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Trigger DigitalOcean Deployment
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.DO_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            "https://api.digitalocean.com/v2/apps/${{ secrets.DO_APP_ID }}/deployments"
