@@ -2,6 +2,7 @@ import io
 import qrcode
 import base64
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from firebase_admin import firestore
 from models.api import ProfileUpdate, PaymentRequest, MessageResponse
 from models.transaction import Transaction
@@ -29,7 +30,7 @@ async def get_citizen_profile(user_id: str):
     if "password" in citizen["account_info"]:
         citizen["account_info"].pop("password")
 
-    return citizen
+    return JSONResponse(content=citizen)
 
 
 # Update citizen profile
@@ -50,7 +51,7 @@ async def update_citizen_profile(user_id: str, data: ProfileUpdate):
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
     doc_ref.update(update_data)
-    return {"message": "Profile updated successfully"}
+    return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
@@ -63,7 +64,7 @@ async def get_wallet(user_id: str):
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     citizen = doc.to_dict()
-    return citizen["wallet_info"]
+    return JSONResponse(content=citizen["wallet_info"])
 
 
 # Generate QR code for payment
@@ -93,7 +94,7 @@ async def generate_qr(user_id: str):
     img.save(buffered)
     img_str = base64.b64encode(buffered.getvalue()).decode()
 
-    return {"qr_code": img_str, "user_id": user_id}
+    return JSONResponse(content={"qr_code": img_str, "user_id": user_id})
 
 
 # Get transaction history
@@ -120,7 +121,7 @@ async def get_transactions(user_id: str):
     # Sort by timestamp, newest first
     transactions.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    return transactions
+    return JSONResponse(content=transactions)
 
 
 # Transfer money to vendor
@@ -182,7 +183,9 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
     transaction_dict = transaction.to_dict()
     transactions_collection.document(transaction.id).set(transaction_dict)
 
-    return {"message": "Payment successful", "transaction_id": transaction.id}
+    return JSONResponse(
+        content={"message": "Payment successful", "transaction_id": transaction.id}
+    )
 
 
 # View eligible schemes
@@ -216,7 +219,7 @@ async def get_eligible_schemes(user_id: str):
             scheme["already_enrolled"] = False
             eligible_schemes.append(scheme)
 
-    return eligible_schemes
+    return JSONResponse(content=eligible_schemes)
 
 
 # Enroll in a scheme
@@ -243,4 +246,4 @@ async def enroll_scheme(user_id: str, scheme_id: str):
         {"beneficiaries": firestore.ArrayUnion([user_id])}
     )
 
-    return {"message": "Successfully enrolled in scheme"}
+    return JSONResponse(content={"message": "Successfully enrolled in scheme"})

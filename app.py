@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
 from pathlib import Path
+
+# from middleware.middleware import LoggingMiddleware
 from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
@@ -39,4 +41,4 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return JSONResponse(content={"status": "ok"})

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Body
+from fastapi.responses import JSONResponse
 from models.api import UserSignup, UserLogin, LoginResponse
 from models.citizen import Citizen
 from models.vendor import Vendor
@@ -32,10 +33,13 @@ async def signup(data: UserSignup = Body(...)):
         )
 
         citizens_collection.document(citizen.account_info["id"]).set(citizen.to_dict())
-        return {
-            "message": "Citizen registered successfully",
-            "user_id": citizen.account_info["id"],
-        }
+        return JSONResponse(
+            content={
+                "message": "Citizen registered successfully",
+                "user_id": citizen.account_info["id"],
+            },
+            status_code=201,
+        )
 
     elif user_type == "vendor":
         existing_user = vendors_collection.where(
@@ -55,10 +59,13 @@ async def signup(data: UserSignup = Body(...)):
         )
 
         vendors_collection.document(vendor.account_info["id"]).set(vendor.to_dict())
-        return {
-            "message": "Vendor registered successfully",
-            "user_id": vendor.account_info["id"],
-        }
+        return JSONResponse(
+            content={
+                "message": "Vendor registered successfully",
+                "user_id": vendor.account_info["id"],
+            },
+            status_code=201,
+        )
 
     elif user_type == "government":
         existing_user = governments_collection.where(
@@ -79,10 +86,13 @@ async def signup(data: UserSignup = Body(...)):
         governments_collection.document(government.account_info["id"]).set(
             government.to_dict()
         )
-        return {
-            "message": "Government registered successfully",
-            "user_id": government.account_info["id"],
-        }
+        return JSONResponse(
+            content={
+                "message": "Government registered successfully",
+                "user_id": government.account_info["id"],
+            },
+            status_code=201,
+        )
 
     else:
         raise HTTPException(status_code=400, detail="Invalid user type")
@@ -127,8 +137,10 @@ async def signin(data: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     # TODO: Generate JWT token here
-    return {
-        "message": "Logged in successfully",
-        "user_id": user_data["account_info"]["id"],
-        # "user_type": user_type,
-    }
+    return JSONResponse(
+        content={
+            "message": "Logged in successfully",
+            "user_id": user_data["account_info"]["id"],
+            # "user_type": user_type,
+        }
+    )

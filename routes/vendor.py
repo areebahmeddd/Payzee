@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from models.api import (
     ProfileUpdate,
     ProcessPaymentRequest,
@@ -24,7 +25,7 @@ async def get_vendor_profile(vendor_id: str):
     if "password" in vendor["account_info"]:
         vendor["account_info"].pop("password")
 
-    return vendor
+    return JSONResponse(content=vendor)
 
 
 # Update vendor profile
@@ -44,7 +45,7 @@ async def update_vendor_profile(vendor_id: str, data: ProfileUpdate):
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
     doc_ref.update(update_data)
-    return {"message": "Profile updated successfully"}
+    return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
@@ -57,7 +58,7 @@ async def get_wallet(vendor_id: str):
         raise HTTPException(status_code=404, detail="Vendor not found")
 
     vendor = doc.to_dict()
-    return vendor["wallet_info"]
+    return JSONResponse(content=vendor["wallet_info"])
 
 
 # Get transaction history
@@ -86,7 +87,7 @@ async def get_transactions(vendor_id: str):
     # Sort by timestamp, newest first
     transactions.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    return transactions
+    return JSONResponse(content=transactions)
 
 
 # Process payment from citizen (via QR code)
@@ -97,12 +98,14 @@ async def process_payment(vendor_id: str, payment: ProcessPaymentRequest):
     if not vendor_doc.exists:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    return {
-        "message": "Payment request initiated",
-        "vendor_id": vendor_id,
-        "citizen_id": payment.citizen_id,
-        "amount": payment.amount,
-    }
+    return JSONResponse(
+        content={
+            "message": "Payment request initiated",
+            "vendor_id": vendor_id,
+            "citizen_id": payment.citizen_id,
+            "amount": payment.amount,
+        }
+    )
 
 
 # Withdraw funds to bank account
@@ -125,8 +128,10 @@ async def withdraw_funds(vendor_id: str, withdraw: WithdrawRequest):
     )
 
     # TODO: Process the withdrawal to the bank account
-    return {
-        "message": "Withdrawal initiated",
-        "amount": withdraw.amount,
-        "bank_account": withdraw.bank_account,
-    }
+    return JSONResponse(
+        content={
+            "message": "Withdrawal initiated",
+            "amount": withdraw.amount,
+            "bank_account": withdraw.bank_account,
+        }
+    )
