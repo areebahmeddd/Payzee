@@ -1,0 +1,10 @@
+{
+	"name": "Payzee API",
+	"image": "mcr.microsoft.com/devcontainers/python:3.11",
+	"forwardPorts": [8000],
+	"customizations": {
+		"vscode": {}
+	},
+	"features": {},
+	"postCreateCommand": "make up"
+}
