@@ -1,19 +1,48 @@
-# Python-specific files
+# Environment files
+.env.example
 .venv/
+venv/
 __pycache__/
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Docker-related files
+docker/
+.dockerignore
+
+# Testing and cache
+.pytest_cache/
+.coverage
+htmlcov/
 .ruff_cache/
 
-# Project-specific files
-tests/
-docs/
-.github/
-.env
-.env.example
-.gitignore
+# Development tools
 .pre-commit-config.yaml
-firebase-config.json
-LICENSE
-README.md
+.editorconfig
+.devcontainer/
 
-# Docker-specific files
-Dockerfile
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.egg-info/
+.installed.cfg
+*.egg
+build/
+dist/
+
+# Project specific
+**/prometheus.yaml
+
+# Documentation
+docs/

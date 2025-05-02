@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/prod.Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - api_data:/app/data
+    networks:
+      - app_network
+
+#   prometheus:
+#     image: prom/prometheus
+#     container_name: payzee_prometheus
+#     ports:
+#       - "9090:9090"
+#     volumes:
+#       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+#     networks:
+#       - app_network
+
+#   grafana:
+#     image: grafana/grafana
+#     container_name: payzee_grafana
+#     ports:
+#       - "3000:3000"
+#     networks:
+#       - app_network
+
+volumes:
+  api_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
