@@ -30,4 +30,4 @@ else
 fi
 
 echo "Starting server..."
-poetry run uvicorn app.app:app --reload
+poetry run uvicorn app:app --reload
