@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from db import citizens_collection, vendors_collection, governments_collection
 
 
+# TODO: Migrate from Firestore to Redis
 def get_user_by_id(user_id, user_type=None):
     """Get user by ID from Firestore"""
     if user_type == "citizen" or user_type is None:

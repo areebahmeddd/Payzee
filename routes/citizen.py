@@ -1,16 +1,19 @@
 import io
 import qrcode
 import base64
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
-from firebase_admin import firestore
-from models.api import ProfileUpdate, PaymentRequest, MessageResponse
+from models.api import PaymentRequest, MessageResponse
 from models.transaction import Transaction
 from db import (
-    citizens_collection,
-    vendors_collection,
-    schemes_collection,
-    transactions_collection,
+    get_citizen,
+    update_citizen,
+    get_vendor,
+    update_vendor,
+    get_scheme,
+    save_transaction,
+    query_transactions_by_field,
+    array_union,
 )
 
 router = APIRouter()
@@ -19,13 +22,11 @@ router = APIRouter()
 # Get citizen profile
 @router.get("/{user_id}")
 async def get_citizen_profile(user_id: str):
-    doc_ref = citizens_collection.document(user_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+    # Check if citizen exists
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
-    citizen = doc.to_dict()
     # Remove sensitive information
     if "password" in citizen["account_info"]:
         citizen["account_info"].pop("password")
@@ -35,45 +36,38 @@ async def get_citizen_profile(user_id: str):
 
 # Update citizen profile
 @router.put("/{user_id}", response_model=MessageResponse)
-async def update_citizen_profile(user_id: str, data: ProfileUpdate):
-    doc_ref = citizens_collection.document(user_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+async def update_citizen_profile(user_id: str, data: dict = Body(...)):
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     # Only update fields that are present
     update_data = {}
-    for field, value in data.dict(exclude_none=True).items():
+    for field, value in data.items():
         update_data[f"account_info.{field}"] = value
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    doc_ref.update(update_data)
+    update_citizen(user_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
 @router.get("/{user_id}/wallet")
 async def get_wallet(user_id: str):
-    doc_ref = citizens_collection.document(user_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
-    citizen = doc.to_dict()
     return JSONResponse(content=citizen["wallet_info"])
 
 
 # Generate QR code for payment
 @router.get("/{user_id}/generate-qr")
 async def generate_qr(user_id: str):
-    doc_ref = citizens_collection.document(user_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     # Generate QR code with user ID
@@ -83,7 +77,7 @@ async def generate_qr(user_id: str):
         box_size=10,
         border=4,
     )
-    qr.add_data(user_id)
+    qr.add_data(user_id)  # TODO: Not enough data for QR code
     qr.make(fit=True)
 
     # Create an image from the QR Code
@@ -101,51 +95,51 @@ async def generate_qr(user_id: str):
 @router.get("/{user_id}/transactions")
 async def get_transactions(user_id: str):
     # Find transactions where user is either sender or receiver
-    from_transactions = transactions_collection.where("from_id", "==", user_id).stream()
-    to_transactions = transactions_collection.where("to_id", "==", user_id).stream()
+    from_transactions = query_transactions_by_field("from_id", user_id)
+    to_transactions = query_transactions_by_field("to_id", user_id)
 
     transactions = []
 
-    for doc in from_transactions:
-        transaction = doc.to_dict()
-        transaction["id"] = doc.id
+    # Add from transactions
+    for transaction in from_transactions:
         transactions.append(transaction)
 
-    for doc in to_transactions:
-        # Only add if not already in the list (avoid duplicates)
-        transaction = doc.to_dict()
-        transaction["id"] = doc.id
+    # Add to transactions (avoiding duplicates)
+    for transaction in to_transactions:
         if not any(t["id"] == transaction["id"] for t in transactions):
             transactions.append(transaction)
 
     # Sort by timestamp, newest first
     transactions.sort(key=lambda x: x["timestamp"], reverse=True)
-
     return JSONResponse(content=transactions)
 
 
 # Transfer money to vendor
 @router.post("/{user_id}/pay", response_model=MessageResponse)
 async def pay_vendor(user_id: str, payment: PaymentRequest):
-    # Get citizen
-    citizen_doc = citizens_collection.document(user_id).get()
-    if not citizen_doc.exists:
+    # Check if citizen exists
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
-
-    citizen = citizen_doc.to_dict()
 
     # Validate wallet type
     wallet_type = payment.wallet_type
     if wallet_type not in ["personal_wallet", "govt_wallet"]:
         raise HTTPException(status_code=400, detail="Invalid wallet type")
 
+    # Check if payment amount is valid
+    if payment.amount <= 0:
+        raise HTTPException(
+            status_code=400, detail="Payment amount must be greater than zero"
+        )
+
     # Check if citizen has sufficient balance
     if citizen["wallet_info"][wallet_type]["balance"] < payment.amount:
         raise HTTPException(status_code=400, detail="Insufficient balance")
 
     # Check if vendor exists
-    vendor_doc = vendors_collection.document(payment.vendor_id).get()
-    if not vendor_doc.exists:
+    vendor = get_vendor(payment.vendor_id)
+    if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
     # Create a transaction
@@ -153,36 +147,45 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
         from_id=user_id,
         to_id=payment.vendor_id,
         amount=payment.amount,
-        transaction_type="citizen-to-vendor",
+        tx_type="citizen-to-vendor",
         description=payment.description or "Payment to vendor",
     )
+    transaction_dict = transaction.to_dict()
 
     # Update citizen's wallet (reduce balance)
-    citizens_collection.document(user_id).update(
+    update_citizen(
+        user_id,
         {
             f"wallet_info.{wallet_type}.balance": citizen["wallet_info"][wallet_type][
                 "balance"
             ]
             - payment.amount,
-            f"wallet_info.{wallet_type}.transactions": firestore.ArrayUnion(
-                [transaction.id]
-            ),
-        }
+        },
+    )
+
+    # Add transaction to citizen's transactions list
+    array_union(
+        "citizens:",
+        user_id,
+        f"wallet_info.{wallet_type}.transactions",
+        [transaction.id],
     )
 
     # Update vendor's wallet (increase balance)
-    vendor = vendor_doc.to_dict()
-    vendors_collection.document(payment.vendor_id).update(
+    update_vendor(
+        payment.vendor_id,
         {
             "wallet_info.balance": vendor["wallet_info"]["balance"] + payment.amount,
-            "wallet_info.transactions": firestore.ArrayUnion([transaction.id]),
-        }
+        },
+    )
+
+    # Add transaction to vendor's transactions list
+    array_union(
+        "vendors:", payment.vendor_id, "wallet_info.transactions", [transaction.id]
     )
 
     # Save transaction to database
-    transaction_dict = transaction.to_dict()
-    transactions_collection.document(transaction.id).set(transaction_dict)
-
+    save_transaction(transaction.id, transaction_dict)
     return JSONResponse(
         content={"message": "Payment successful", "transaction_id": transaction.id}
     )
@@ -191,22 +194,18 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
 # View eligible schemes
 @router.get("/{user_id}/eligible-schemes")
 async def get_eligible_schemes(user_id: str):
-    # Check if citizen exists
-    citizen_doc = citizens_collection.document(user_id).get()
-    if not citizen_doc.exists:
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     # Get all active schemes
-    active_schemes = schemes_collection.where("status", "==", "active").stream()
+    active_schemes = query_transactions_by_field("status", "active")
 
     # Filter schemes based on eligibility criteria
     eligible_schemes = []
-    for doc in active_schemes:
-        scheme = doc.to_dict()
-        scheme["id"] = doc.id
-
+    for scheme in active_schemes:
         # Check if user is already a beneficiary
-        if user_id in scheme.get("beneficiaries", []):
+        if "beneficiaries" in scheme and user_id in scheme["beneficiaries"]:
             scheme["already_enrolled"] = True
             eligible_schemes.append(scheme)
             continue
@@ -226,24 +225,19 @@ async def get_eligible_schemes(user_id: str):
 @router.post("/{user_id}/enroll-scheme/{scheme_id}", response_model=MessageResponse)
 async def enroll_scheme(user_id: str, scheme_id: str):
     # Check if citizen exists
-    citizen_doc = citizens_collection.document(user_id).get()
-    if not citizen_doc.exists:
+    citizen = get_citizen(user_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     # Check if scheme exists
-    scheme_doc = schemes_collection.document(scheme_id).get()
-    if not scheme_doc.exists:
+    scheme = get_scheme(scheme_id)
+    if not scheme:
         raise HTTPException(status_code=404, detail="Scheme not found")
 
-    scheme = scheme_doc.to_dict()
-
     # Check if already enrolled
-    if user_id in scheme.get("beneficiaries", []):
+    if "beneficiaries" in scheme and user_id in scheme["beneficiaries"]:
         raise HTTPException(status_code=409, detail="Already enrolled in this scheme")
 
     # Update scheme to add citizen as a beneficiary
-    schemes_collection.document(scheme_id).update(
-        {"beneficiaries": firestore.ArrayUnion([user_id])}
-    )
-
+    array_union("schemes:", scheme_id, "beneficiaries", [user_id])
     return JSONResponse(content={"message": "Successfully enrolled in scheme"})

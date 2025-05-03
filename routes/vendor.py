@@ -1,26 +1,22 @@
-from fastapi import APIRouter, HTTPException
+import io
+import qrcode
+import base64
+from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
-from models.api import (
-    ProfileUpdate,
-    ProcessPaymentRequest,
-    WithdrawRequest,
-    MessageResponse,
-)
-from db import vendors_collection, transactions_collection
+from models.api import MessageResponse
+from db import get_vendor, update_vendor, query_transactions_by_field
 
 router = APIRouter()
 
 
 # Get vendor profile
-@router.get("/{vendor_id}")
-async def get_vendor_profile(vendor_id: str):
-    doc_ref = vendors_collection.document(vendor_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+@router.get("/{user_id}")
+async def get_vendor_profile(user_id: str):
+    # Check if vendor existss
+    vendor = get_vendor(user_id)
+    if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    vendor = doc.to_dict()
     # Remove sensitive information
     if "password" in vendor["account_info"]:
         vendor["account_info"].pop("password")
@@ -29,109 +25,80 @@ async def get_vendor_profile(vendor_id: str):
 
 
 # Update vendor profile
-@router.put("/{vendor_id}", response_model=MessageResponse)
-async def update_vendor_profile(vendor_id: str, data: ProfileUpdate):
-    doc_ref = vendors_collection.document(vendor_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+@router.put("/{user_id}", response_model=MessageResponse)
+async def update_vendor_profile(user_id: str, data: dict = Body(...)):
+    vendor = get_vendor(user_id)
+    if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
+    # Only update fields that are present
     update_data = {}
-    for field, value in data.dict(exclude_none=True).items():
+    for field, value in data.items():
         update_data[f"account_info.{field}"] = value
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    doc_ref.update(update_data)
+    update_vendor(user_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
-@router.get("/{vendor_id}/wallet")
-async def get_wallet(vendor_id: str):
-    doc_ref = vendors_collection.document(vendor_id)
-    doc = doc_ref.get()
-
-    if not doc.exists:
+@router.get("/{user_id}/wallet")
+async def get_wallet(user_id: str):
+    vendor = get_vendor(user_id)
+    if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    vendor = doc.to_dict()
     return JSONResponse(content=vendor["wallet_info"])
 
 
+# Generate QR code for payment
+@router.get("/{user_id}/generate-qr")
+async def generate_qr(user_id: str):
+    vendor = get_vendor(user_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    # Generate QR code with user ID
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(user_id)  # TODO: ..
+    qr.make(fit=True)
+
+    # Create an image from the QR Code
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Convert to base64 for transport
+    buffered = io.BytesIO()
+    img.save(buffered)
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+
+    return JSONResponse(content={"qr_code": img_str, "user_id": user_id})
+
+
 # Get transaction history
-@router.get("/{vendor_id}/transactions")
-async def get_transactions(vendor_id: str):
+@router.get("/{user_id}/transactions")
+async def get_transactions(user_id: str):
     # Find transactions where vendor is either sender or receiver
-    from_transactions = transactions_collection.where(
-        "from_id", "==", vendor_id
-    ).stream()
-    to_transactions = transactions_collection.where("to_id", "==", vendor_id).stream()
+    from_transactions = query_transactions_by_field("from_id", user_id)
+    to_transactions = query_transactions_by_field("to_id", user_id)
 
     transactions = []
 
-    for doc in from_transactions:
-        transaction = doc.to_dict()
-        transaction["id"] = doc.id
+    # Add from transactions
+    for transaction in from_transactions:
         transactions.append(transaction)
 
-    for doc in to_transactions:
-        # Only add if not already in the list (avoid duplicates)
-        transaction = doc.to_dict()
-        transaction["id"] = doc.id
+    # Add to transactions (avoiding duplicates)
+    for transaction in to_transactions:
         if not any(t["id"] == transaction["id"] for t in transactions):
             transactions.append(transaction)
 
     # Sort by timestamp, newest first
     transactions.sort(key=lambda x: x["timestamp"], reverse=True)
-
     return JSONResponse(content=transactions)
-
-
-# Process payment from citizen (via QR code)
-@router.post("/{vendor_id}/process-payment", response_model=MessageResponse)
-async def process_payment(vendor_id: str, payment: ProcessPaymentRequest):
-    # TODO: Validate payment details (e.g., amount, citizen ID)
-    vendor_doc = vendors_collection.document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
-
-    return JSONResponse(
-        content={
-            "message": "Payment request initiated",
-            "vendor_id": vendor_id,
-            "citizen_id": payment.citizen_id,
-            "amount": payment.amount,
-        }
-    )
-
-
-# Withdraw funds to bank account
-@router.post("/{vendor_id}/withdraw", response_model=MessageResponse)
-async def withdraw_funds(vendor_id: str, withdraw: WithdrawRequest):
-    # Get vendor
-    vendor_doc = vendors_collection.document(vendor_id).get()
-    if not vendor_doc.exists:
-        raise HTTPException(status_code=404, detail="Vendor not found")
-
-    vendor = vendor_doc.to_dict()
-
-    # Check if vendor has sufficient balance
-    if vendor["wallet_info"]["balance"] < withdraw.amount:
-        raise HTTPException(status_code=400, detail="Insufficient balance")
-
-    # Update vendor's wallet (reduce balance)
-    vendors_collection.document(vendor_id).update(
-        {"wallet_info.balance": vendor["wallet_info"]["balance"] - withdraw.amount}
-    )
-
-    # TODO: Process the withdrawal to the bank account
-    return JSONResponse(
-        content={
-            "message": "Withdrawal initiated",
-            "amount": withdraw.amount,
-            "bank_account": withdraw.bank_account,
-        }
-    )

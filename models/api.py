@@ -1,40 +1,39 @@
 from pydantic import BaseModel, EmailStr
-from typing import Any, Optional, Dict, Literal, List
+from typing import Any, Optional, Dict, List
 
 
-# Common base models
-class UserBase(BaseModel):
-    """Base model for user authentication"""
-
+# Signup models
+class CitizenSignup(BaseModel):
+    name: str
     email: EmailStr
     password: str
-
-
-class ProfileUpdate(BaseModel):
-    """Common model for profile updates"""
-
-    name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
+    id_proof: Optional[str] = None
 
 
-# Auth models
-class UserSignup(UserBase):
+class VendorSignup(BaseModel):
     name: str
-    user_type: Literal["citizen", "vendor", "government"]
+    email: EmailStr
+    password: str
     phone: Optional[str] = None
     address: Optional[str] = None
-    # Vendor specific
-    business_name: Optional[str] = None
+    business_name: str
     business_id: Optional[str] = None
-    # Government specific
-    department: Optional[str] = None
-    jurisdiction: Optional[str] = None
-    govt_id: Optional[str] = None
 
 
-class UserLogin(UserBase):
-    user_type: Literal["citizen", "vendor", "government"]
+class GovernmentSignup(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    department: str
+    jurisdiction: str
+    govt_id: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
 
 # Transaction models
@@ -45,18 +44,8 @@ class PaymentRequest(BaseModel):
     description: Optional[str] = None
 
 
-class ProcessPaymentRequest(BaseModel):
-    citizen_id: str
-    amount: float
-
-
-class WithdrawRequest(BaseModel):
-    amount: float
-    bank_account: str
-
-
 # Scheme models
-class SchemeModel(BaseModel):
+class SchemeCreate(BaseModel):
     name: str
     description: str
     amount: float
@@ -64,11 +53,18 @@ class SchemeModel(BaseModel):
     tags: Optional[List[str]] = None
 
 
+# Disbursement model
+class DisbursementRequest(BaseModel):
+    scheme_id: str
+    amount_per_user: float
+    # test_mode: bool = False
+
+
 # Response models
 class MessageResponse(BaseModel):
     message: str
-
-
-class LoginResponse(MessageResponse):
-    user_id: str
-    # user_type: str
+    user_id: Optional[str] = None
+    user_type: Optional[str] = None
+    transaction_id: Optional[str] = None
+    scheme_id: Optional[str] = None
+    beneficiaries_count: Optional[int] = None

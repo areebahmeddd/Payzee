@@ -1,31 +1,36 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
-from firebase_admin import firestore
-from models.api import ProfileUpdate, SchemeModel, MessageResponse
-from models.scheme import Scheme
+from models.api import DisbursementRequest, SchemeCreate, MessageResponse
 from models.transaction import Transaction
+from models.scheme import Scheme
 from db import (
-    governments_collection,
-    citizens_collection,
-    vendors_collection,
-    schemes_collection,
-    transactions_collection,
+    get_government,
+    update_government,
+    get_citizen,
+    update_citizen,
+    get_scheme,
+    save_scheme,
+    save_transaction,
+    query_schemes_by_field,
+    get_all_citizens,
+    get_all_vendors,
+    get_all_transactions,
+    array_union,
+    get_vendor,
+    get_transaction,
 )
 
 router = APIRouter()
 
 
 # Get government profile
-@router.get("/{govt_id}")
-async def get_government_profile(govt_id: str):
+@router.get("/{user_id}")
+async def get_government_profile(user_id: str):
     # Check if government exists
-    doc_ref = governments_collection.document(govt_id)
-    doc = doc_ref.get()
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    if not doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    govt = doc.to_dict()
     # Remove sensitive information
     if "password" in govt["account_info"]:
         govt["account_info"].pop("password")
@@ -34,311 +39,287 @@ async def get_government_profile(govt_id: str):
 
 
 # Update government profile
-@router.put("/{govt_id}", response_model=MessageResponse)
-async def update_government_profile(govt_id: str, data: ProfileUpdate):
-    doc_ref = governments_collection.document(govt_id)
-    doc = doc_ref.get()
+@router.put("/{user_id}", response_model=MessageResponse)
+async def update_government_profile(user_id: str, data: dict = Body(...)):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    if not doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    # Update fields that are present
+    # Only update fields that are present
     update_data = {}
-    for field, value in data.dict(exclude_none=True).items():
+    for field, value in data.items():
         update_data[f"account_info.{field}"] = value
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    doc_ref.update(update_data)
+    update_government(user_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
-@router.get("/{govt_id}/wallet")
-async def get_wallet(govt_id: str):
-    doc_ref = governments_collection.document(govt_id)
-    doc = doc_ref.get()
+@router.get("/{user_id}/wallet")
+async def get_wallet(user_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    if not doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    govt = doc.to_dict()
     return JSONResponse(content=govt["wallet_info"])
 
 
-# Get all schemes
-@router.get("/{govt_id}/schemes")
-async def get_schemes(govt_id: str):
-    schemes_docs = schemes_collection.where("govt_id", "==", govt_id).stream()
+# Get all citizens
+@router.get("/{user_id}/all-citizens")
+async def get_all_citizen_profiles(user_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    schemes = []
-    for doc in schemes_docs:
-        scheme = doc.to_dict()
-        scheme["id"] = doc.id
-        schemes.append(scheme)
+    citizens = get_all_citizens()
 
-    return JSONResponse(content=schemes)
+    for citizen in citizens:
+        if "account_info" in citizen and "password" in citizen["account_info"]:
+            citizen["account_info"].pop("password")
 
-
-# Create new scheme
-@router.post("/{govt_id}/schemes", status_code=201, response_model=MessageResponse)
-async def create_scheme(govt_id: str, scheme_data: SchemeModel):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    # Create new scheme
-    scheme = Scheme(
-        name=scheme_data.name,
-        description=scheme_data.description,
-        govt_id=govt_id,
-        amount=scheme_data.amount,
-        eligibility_criteria=scheme_data.eligibility_criteria,
-        tags=scheme_data.tags,
-    )
-
-    # Save scheme to database
-    scheme_ref = schemes_collection.document(scheme.id)
-    scheme_ref.set(scheme.to_dict())
-
-    # Update government account to reference this scheme
-    governments_collection.document(govt_id).update(
-        {"wallet_info.schemes": firestore.ArrayUnion([scheme.id])}
-    )
-
-    return JSONResponse(
-        content={"message": "Scheme created successfully", "scheme_id": scheme.id},
-        status_code=201,
-    )
+    return JSONResponse(content=citizens)
 
 
-# Update existing scheme
-@router.put("/{govt_id}/schemes/{scheme_id}", response_model=MessageResponse)
-async def update_scheme(govt_id: str, scheme_id: str, data: SchemeModel):
-    # Check if scheme exists and belongs to this government
-    scheme_doc = schemes_collection.document(scheme_id).get()
-    if not scheme_doc.exists or scheme_doc.to_dict().get("govt_id") != govt_id:
-        raise HTTPException(
-            status_code=404, detail="Scheme not found or you don't have permission"
-        )
+# Get specific citizen by ID
+@router.get("/{user_id}/citizen/{citizen_id}")
+async def get_specific_citizen(user_id: str, citizen_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    # Update scheme details
-    update_data = {}
-    for field, value in data.dict(exclude_none=True).items():
-        update_data[field] = value
-
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No valid fields to update")
-
-    schemes_collection.document(scheme_id).update(update_data)
-    return JSONResponse(content={"message": "Scheme updated successfully"})
-
-
-# Get beneficiaries of a scheme
-@router.get("/{govt_id}/schemes/{scheme_id}/beneficiaries")
-async def get_scheme_beneficiaries(govt_id: str, scheme_id: str):
-    scheme_doc = schemes_collection.document(scheme_id).get()
-    if not scheme_doc.exists or scheme_doc.to_dict().get("govt_id") != govt_id:
-        raise HTTPException(
-            status_code=404, detail="Scheme not found or you don't have permission"
-        )
-
-    scheme = scheme_doc.to_dict()
-    beneficiaries = []
-
-    for citizen_id in scheme.get("beneficiaries", []):
-        citizen_doc = citizens_collection.document(citizen_id).get()
-        if citizen_doc.exists:
-            citizen = citizen_doc.to_dict()
-            # Remove sensitive information
-            if "password" in citizen["account_info"]:
-                citizen["account_info"].pop("password")
-            beneficiaries.append(citizen)
-
-    return JSONResponse(content=beneficiaries)
-
-
-# Disburse funds to citizens enrolled in a scheme
-@router.post("/{govt_id}/schemes/{scheme_id}/disburse", response_model=MessageResponse)
-async def disburse_funds(govt_id: str, scheme_id: str):
-    scheme_doc = schemes_collection.document(scheme_id).get()
-    if not scheme_doc.exists or scheme_doc.to_dict().get("govt_id") != govt_id:
-        raise HTTPException(
-            status_code=404, detail="Scheme not found or you don't have permission"
-        )
-
-    scheme = scheme_doc.to_dict()
-
-    # Get government account
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    govt = govt_doc.to_dict()
-
-    # Check if government has enough balance
-    beneficiaries = scheme.get("beneficiaries", [])
-    total_amount_needed = scheme["amount"] * len(beneficiaries)
-
-    if govt["wallet_info"]["balance"] < total_amount_needed:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Insufficient funds in government wallet. Required: {total_amount_needed}, Available: {govt['wallet_info']['balance']}",
-        )
-
-    # Process disbursement for each beneficiary
-    successful_transfers = []
-    failed_transfers = []
-
-    for citizen_id in beneficiaries:
-        try:
-            # Create transaction
-            transaction = Transaction(
-                from_id=govt_id,
-                to_id=citizen_id,
-                amount=scheme["amount"],
-                transaction_type="govt-to-citizen",
-                scheme_id=scheme_id,
-                description=f"Disbursement for scheme: {scheme['name']}",
-            )
-
-            # Update citizen wallet
-            citizen_doc = citizens_collection.document(citizen_id)
-            citizen = citizen_doc.get().to_dict()
-
-            citizen_doc.update(
-                {
-                    "wallet_info.govt_wallet.balance": citizen["wallet_info"][
-                        "govt_wallet"
-                    ]["balance"]
-                    + scheme["amount"],
-                    "wallet_info.govt_wallet.transactions": firestore.ArrayUnion(
-                        [transaction.id]
-                    ),
-                }
-            )
-
-            # Save transaction to database
-            transactions_collection.document(transaction.id).set(transaction.to_dict())
-
-            successful_transfers.append(
-                {
-                    "citizen_id": citizen_id,
-                    "amount": scheme["amount"],
-                    "transaction_id": transaction.id,
-                }
-            )
-        except Exception as e:
-            failed_transfers.append({"citizen_id": citizen_id, "error": str(e)})
-
-    # Update government wallet balance
-    governments_collection.document(govt_id).update(
-        {"wallet_info.balance": govt["wallet_info"]["balance"] - total_amount_needed}
-    )
-
-    return JSONResponse(
-        content={
-            "message": "Disbursement completed",
-            "successful_transfers": successful_transfers,
-            "failed_transfers": failed_transfers,
-            "total_disbursed": scheme["amount"] * len(successful_transfers),
-        }
-    )
-
-
-# View citizen profile
-@router.get("/{govt_id}/citizens/{citizen_id}")
-async def view_citizen_profile(govt_id: str, citizen_id: str):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    # Get citizen profile
-    citizen_doc = citizens_collection.document(citizen_id).get()
-    if not citizen_doc.exists:
+    citizen = get_citizen(citizen_id)
+    if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
-    citizen = citizen_doc.to_dict()
-    if "password" in citizen["account_info"]:
+    if "account_info" in citizen and "password" in citizen["account_info"]:
         citizen["account_info"].pop("password")
 
     return JSONResponse(content=citizen)
 
 
-# Get all citizens
-@router.get("/{govt_id}/citizens")
-async def get_all_citizens(govt_id: str):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
+# Get all vendors
+@router.get("/{user_id}/all-vendors")
+async def get_all_vendor_profiles(user_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    citizens_docs = citizens_collection.stream()
-    citizens = []
+    vendors = get_all_vendors()
 
-    for doc in citizens_docs:
-        citizen = doc.to_dict()
-        if "password" in citizen["account_info"]:
-            citizen["account_info"].pop("password")
-        citizen["id"] = doc.id
-        citizens.append(citizen)
+    for vendor in vendors:
+        if "account_info" in vendor and "password" in vendor["account_info"]:
+            vendor["account_info"].pop("password")
 
-    return JSONResponse(content=citizens)
+    return JSONResponse(content=vendors)
 
 
-# View vendor profile
-@router.get("/{govt_id}/vendors/{vendor_id}")
-async def view_vendor_profile(govt_id: str, vendor_id: str):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
+# Get specific vendor by ID
+@router.get("/{user_id}/vendor/{vendor_id}")
+async def get_specific_vendor(user_id: str, vendor_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    # Get vendor profile
-    vendor_doc = vendors_collection.document(vendor_id).get()
-    if not vendor_doc.exists:
+    vendor = get_vendor(vendor_id)
+    if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    vendor = vendor_doc.to_dict()
-    if "password" in vendor["account_info"]:
+    if "account_info" in vendor and "password" in vendor["account_info"]:
         vendor["account_info"].pop("password")
 
     return JSONResponse(content=vendor)
 
 
-# Get all vendors
-@router.get("/{govt_id}/vendors")
-async def get_all_vendors(govt_id: str):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
-
-    vendors_docs = vendors_collection.stream()
-    vendors = []
-
-    for doc in vendors_docs:
-        vendor = doc.to_dict()
-        if "password" in vendor["account_info"]:
-            vendor["account_info"].pop("password")
-        vendor["id"] = doc.id
-        vendors.append(vendor)
-
-    return JSONResponse(content=vendors)
-
-
 # Get all transactions
-@router.get("/{govt_id}/transactions")
-async def get_all_transactions(govt_id: str):
-    govt_doc = governments_collection.document(govt_id).get()
-    if not govt_doc.exists:
-        raise HTTPException(status_code=404, detail="Government account not found")
+@router.get("/{user_id}/all-transactions")
+async def get_all_system_transactions(user_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
 
-    # Get all transactions from the collection
-    transactions_docs = transactions_collection.stream()
-    transactions = []
+    transactions = get_all_transactions()
 
-    for doc in transactions_docs:
-        transaction = doc.to_dict()
-        transaction["id"] = doc.id
-        transactions.append(transaction)
-
+    # Sort by timestamp, newest first
+    transactions.sort(
+        key=lambda x: x["timestamp"] if "timestamp" in x else "", reverse=True
+    )
     return JSONResponse(content=transactions)
+
+
+# Get specific transaction by ID
+@router.get("/{user_id}/transaction/{transaction_id}")
+async def get_specific_transaction(user_id: str, transaction_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    transaction = get_transaction(transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    return JSONResponse(content=transaction)
+
+
+# Create a new scheme
+@router.post("/{user_id}/schemes", response_model=MessageResponse)
+async def create_scheme(user_id: str, scheme_data: SchemeCreate):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    # Create a new scheme
+    scheme = Scheme(
+        name=scheme_data.name,
+        description=scheme_data.description,
+        govt_id=user_id,
+        amount=scheme_data.amount,
+        eligibility_criteria=scheme_data.eligibility_criteria,
+        tags=scheme_data.tags,
+    )
+    scheme_dict = scheme.to_dict()
+
+    # Save scheme to database
+    save_scheme(scheme.id, scheme_dict)
+
+    # Add scheme to government's schemes list
+    array_union("governments:", user_id, "wallet_info.schemes", [scheme.id])
+    return JSONResponse(
+        content={"message": "Scheme created successfully", "scheme_id": scheme.id}
+    )
+
+
+# Get all schemes created by this government
+@router.get("/{user_id}/schemes")
+async def get_schemes(user_id: str):
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    # Get schemes created by this government
+    schemes = query_schemes_by_field("govt_id", user_id)
+    return JSONResponse(content=schemes)
+
+
+# Get beneficiaries of a specific scheme
+@router.get("/{user_id}/schemes/{scheme_id}/beneficiaries")
+async def get_scheme_beneficiaries(user_id: str, scheme_id: str):
+    # Check if the government exists
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    # Get the scheme
+    scheme = get_scheme(scheme_id)
+    if not scheme:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+
+    # Check if this government owns the scheme
+    if scheme["govt_id"] != user_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this scheme"
+        )
+
+    # Get the beneficiaries
+    beneficiaries = []
+    if "beneficiaries" in scheme:
+        for citizen_id in scheme["beneficiaries"]:
+            citizen = get_citizen(citizen_id)
+            if citizen:
+                # Remove sensitive info
+                if "password" in citizen["account_info"]:
+                    citizen["account_info"].pop("password")
+                beneficiaries.append(citizen)
+
+    return JSONResponse(content=beneficiaries)
+
+
+# Disburse funds to beneficiaries
+@router.post("/{user_id}/disburse", response_model=MessageResponse)
+async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
+    # Check if the government exists
+    govt = get_government(user_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    # Check if the scheme exists
+    scheme = get_scheme(disbursement.scheme_id)
+    if not scheme:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+
+    # Check if this government owns the scheme
+    if scheme["govt_id"] != user_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this scheme"
+        )
+
+    # Check if there's enough balance in the government wallet
+    if govt["wallet_info"]["balance"] < disbursement.amount_per_user * len(
+        scheme["beneficiaries"]
+    ):
+        raise HTTPException(status_code=400, detail="Insufficient balance")
+
+    # Disburse funds to each beneficiary
+    successful_disbursements = 0
+    for citizen_id in scheme["beneficiaries"]:
+        # Skip if citizen doesn't exist
+        citizen = get_citizen(citizen_id)
+        if not citizen:
+            continue
+
+        # Create a transaction for this disbursement
+        transaction = Transaction(
+            from_id=user_id,
+            to_id=citizen_id,
+            amount=disbursement.amount_per_user,
+            tx_type="government-to-citizen",
+            scheme_id=disbursement.scheme_id,
+            description=f"Disbursement for {scheme['name']}",
+        )
+        transaction_dict = transaction.to_dict()
+
+        # Update citizen's wallet
+        update_citizen(
+            citizen_id,
+            {
+                "wallet_info.govt_wallet.balance": citizen["wallet_info"][
+                    "govt_wallet"
+                ]["balance"]
+                + disbursement.amount_per_user,
+            },
+        )
+
+        # Add transaction to citizen's transactions
+        array_union(
+            "citizens:",
+            citizen_id,
+            "wallet_info.govt_wallet.transactions",
+            [transaction.id],
+        )
+
+        # Deduct from government wallet
+        update_government(
+            user_id,
+            {
+                "wallet_info.balance": govt["wallet_info"]["balance"]
+                - disbursement.amount_per_user,
+            },
+        )
+
+        # Add transaction to government's transactions
+        array_union(
+            "governments:", user_id, "wallet_info.transactions", [transaction.id]
+        )
+
+        # Save transaction
+        save_transaction(transaction.id, transaction_dict)
+        successful_disbursements += 1
+
+    return JSONResponse(
+        content={
+            "message": "Funds disbursed successfully",
+            "beneficiaries_count": successful_disbursements,
+        }
+    )

@@ -4,21 +4,17 @@ from datetime import datetime, timezone
 
 class Transaction:
     def __init__(
-        self, from_id, to_id, amount, transaction_type, scheme_id=None, description=None
+        self, from_id, to_id, amount, tx_type, scheme_id=None, description=None
     ):
         self.id = str(uuid.uuid4())
-        self.from_id = from_id  # User ID of sender
-        self.to_id = to_id  # User ID of receiver
+        self.from_id = from_id  # ID of the sender (govt, citizen, vendor)
+        self.to_id = to_id  # ID of the recipient (citizen, vendor)
         self.amount = amount
-        self.transaction_type = (
-            transaction_type  # govt-to-citizen, citizen-to-vendor, etc.
-        )
-        self.scheme_id = (
-            scheme_id  # Optional reference to scheme if this is a scheme disbursement
-        )
-        self.description = description
+        self.tx_type = tx_type  # govt_to_citizen, citizen_to_vendor, etc.
+        self.scheme_id = scheme_id  # If it's a government disbursement
+        self.description = description or "Transaction"
         self.timestamp = datetime.now(timezone.utc)
-        self.status = "completed"  # completed, pending, failed
+        self.status = "completed"  # pending, completed, failed
 
     def to_dict(self):
         return {
@@ -26,7 +22,7 @@ class Transaction:
             "from_id": self.from_id,
             "to_id": self.to_id,
             "amount": self.amount,
-            "transaction_type": self.transaction_type,
+            "tx_type": self.tx_type,
             "scheme_id": self.scheme_id,
             "description": self.description,
             "timestamp": self.timestamp,
@@ -39,7 +35,7 @@ class Transaction:
             from_id=data["from_id"],
             to_id=data["to_id"],
             amount=data["amount"],
-            transaction_type=data["transaction_type"],
+            tx_type=data["tx_type"],
             scheme_id=data.get("scheme_id"),
             description=data.get("description"),
         )
