@@ -8,38 +8,74 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
     volumes:
       - api_data:/app/data
     networks:
-      - app_network
+      - payzee_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
-#   prometheus:
-#     image: prom/prometheus
-#     container_name: payzee_prometheus
-#     ports:
-#       - "9090:9090"
-#     volumes:
-#       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-#     networks:
-#       - app_network
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - payzee_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: redis-server --save 60 1 --loglevel warning
 
-#   grafana:
-#     image: grafana/grafana
-#     container_name: payzee_grafana
-#     ports:
-#       - "3000:3000"
-#     networks:
-#       - app_network
+  redisinsight:
+    image: redis/redisinsight:latest
+    restart: unless-stopped
+    ports:
+      - 5540:5540
+    volumes:
+      - redisinsight_data:/db
+    networks:
+      - payzee_network
+    depends_on:
+      - redis
+
+  # prometheus:
+  #   image: prom/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - payzee_network
+
+  # grafana:
+  #   image: grafana/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - payzee_network
 
 volumes:
   api_data:
     driver: local
+  redis_data:
+    driver: local
+  redisinsight_data:
+    driver: local
 
 networks:
-  app_network:
+  payzee_network:
     driver: bridge

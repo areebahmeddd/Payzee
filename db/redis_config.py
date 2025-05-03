@@ -1,7 +1,15 @@
 import redis
+import os
+
+# Load environment variables for Redis configuration
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = int(os.environ.get("REDIS_PORT", 6379))
+redis_db = int(os.environ.get("REDIS_DB", 0))
 
 # Initialize Redis client
-redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+redis_client = redis.Redis(
+    host=redis_host, port=redis_port, db=redis_db, decode_responses=True
+)
 
 # Collection prefixes for different entity types
 CITIZENS_PREFIX = "citizens:"
