@@ -9,7 +9,7 @@ class TestVendorRoutes:
         mock_get_vendor.return_value = sample_vendor_data
 
         # Make request
-        response = client.get("/api/v1/vendor/test-vendor-id")
+        response = client.get("/api/v1/vendors/test-vendor-id")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -22,7 +22,7 @@ class TestVendorRoutes:
         mock_get_vendor.return_value = None
 
         # Make request
-        response = client.get("/api/v1/vendor/nonexistent-id")
+        response = client.get("/api/v1/vendors/nonexistent-id")
 
         # Check response
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -41,7 +41,7 @@ class TestVendorRoutes:
         update_data = {"name": "Updated Business Name", "phone": "9876543210"}
 
         # Make request
-        response = client.put("/api/v1/vendor/test-vendor-id", json=update_data)
+        response = client.put("/api/v1/vendors/test-vendor-id", json=update_data)
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -56,7 +56,7 @@ class TestVendorRoutes:
         mock_get_vendor.return_value = sample_vendor_data
 
         # Make request
-        response = client.get("/api/v1/vendor/test-vendor-id/wallet")
+        response = client.get("/api/v1/vendors/test-vendor-id/wallet")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -78,7 +78,7 @@ class TestVendorRoutes:
         mock_query_transactions.side_effect = [[sample_transaction_data], []]
 
         # Make request
-        response = client.get("/api/v1/vendor/test-vendor-id/transactions")
+        response = client.get("/api/v1/vendors/test-vendor-id/transactions")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -91,7 +91,7 @@ class TestVendorRoutes:
         mock_get_vendor.return_value = sample_vendor_data
 
         # Make request
-        response = client.get("/api/v1/vendor/test-vendor-id/generate-qr")
+        response = client.get("/api/v1/vendors/test-vendor-id/generate-qr")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK

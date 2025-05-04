@@ -10,10 +10,10 @@ router = APIRouter()
 
 
 # Get vendor profile
-@router.get("/{user_id}")
-async def get_vendor_profile(user_id: str):
+@router.get("/{vendor_id}")
+async def get_vendor_profile(vendor_id: str):
     # Check if vendor existss
-    vendor = get_vendor(user_id)
+    vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
@@ -25,9 +25,9 @@ async def get_vendor_profile(user_id: str):
 
 
 # Update vendor profile
-@router.put("/{user_id}", response_model=MessageResponse)
-async def update_vendor_profile(user_id: str, data: dict = Body(...)):
-    vendor = get_vendor(user_id)
+@router.put("/{vendor_id}", response_model=MessageResponse)
+async def update_vendor_profile(vendor_id: str, data: dict = Body(...)):
+    vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
@@ -39,14 +39,14 @@ async def update_vendor_profile(user_id: str, data: dict = Body(...)):
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    update_vendor(user_id, update_data)
+    update_vendor(vendor_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
-@router.get("/{user_id}/wallet")
-async def get_wallet(user_id: str):
-    vendor = get_vendor(user_id)
+@router.get("/{vendor_id}/wallet")
+async def get_wallet(vendor_id: str):
+    vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
@@ -54,9 +54,9 @@ async def get_wallet(user_id: str):
 
 
 # Generate QR code for payment
-@router.get("/{user_id}/generate-qr")
-async def generate_qr(user_id: str):
-    vendor = get_vendor(user_id)
+@router.get("/{vendor_id}/generate-qr")
+async def generate_qr(vendor_id: str):
+    vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
@@ -67,7 +67,7 @@ async def generate_qr(user_id: str):
         box_size=10,
         border=4,
     )
-    qr.add_data(user_id)  # TODO: ..
+    qr.add_data(vendor_id)  # TODO: ..
     qr.make(fit=True)
 
     # Create an image from the QR Code
@@ -78,15 +78,15 @@ async def generate_qr(user_id: str):
     img.save(buffered)
     img_str = base64.b64encode(buffered.getvalue()).decode()
 
-    return JSONResponse(content={"qr_code": img_str, "user_id": user_id})
+    return JSONResponse(content={"qr_code": img_str, "user_id": vendor_id})
 
 
 # Get transaction history
-@router.get("/{user_id}/transactions")
-async def get_transactions(user_id: str):
+@router.get("/{vendor_id}/transactions")
+async def get_transactions(vendor_id: str):
     # Find transactions where vendor is either sender or receiver
-    from_transactions = query_transactions_by_field("from_id", user_id)
-    to_transactions = query_transactions_by_field("to_id", user_id)
+    from_transactions = query_transactions_by_field("from_id", vendor_id)
+    to_transactions = query_transactions_by_field("to_id", vendor_id)
 
     transactions = []
 

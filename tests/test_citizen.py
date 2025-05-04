@@ -9,7 +9,7 @@ class TestCitizenRoutes:
         mock_get_citizen.return_value = sample_citizen_data
 
         # Make request
-        response = client.get("/api/v1/citizen/test-citizen-id")
+        response = client.get("/api/v1/citizens/test-citizen-id")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -22,7 +22,7 @@ class TestCitizenRoutes:
         mock_get_citizen.return_value = None
 
         # Make request
-        response = client.get("/api/v1/citizen/nonexistent-id")
+        response = client.get("/api/v1/citizens/nonexistent-id")
 
         # Check response
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -41,7 +41,7 @@ class TestCitizenRoutes:
         update_data = {"name": "Updated Name", "phone": "9876543210"}
 
         # Make request
-        response = client.put("/api/v1/citizen/test-citizen-id", json=update_data)
+        response = client.put("/api/v1/citizens/test-citizen-id", json=update_data)
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -56,7 +56,7 @@ class TestCitizenRoutes:
         mock_get_citizen.return_value = sample_citizen_data
 
         # Make request
-        response = client.get("/api/v1/citizen/test-citizen-id/wallet")
+        response = client.get("/api/v1/citizens/test-citizen-id/wallet")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -96,7 +96,9 @@ class TestCitizenRoutes:
         }
 
         # Make request
-        response = client.post("/api/v1/citizen/test-citizen-id/pay", json=payment_data)
+        response = client.post(
+            "/api/v1/citizens/test-citizen-id/pay", json=payment_data
+        )
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -125,7 +127,7 @@ class TestCitizenRoutes:
         mock_query_transactions.side_effect = [[sample_transaction_data], []]
 
         # Make request
-        response = client.get("/api/v1/citizen/test-citizen-id/transactions")
+        response = client.get("/api/v1/citizens/test-citizen-id/transactions")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -151,7 +153,7 @@ class TestCitizenRoutes:
 
         # Make request
         response = client.post(
-            "/api/v1/citizen/test-citizen-id/enroll-scheme/test-scheme-id"
+            "/api/v1/citizens/test-citizen-id/enroll-scheme/test-scheme-id"
         )
 
         # Check response

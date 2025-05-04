@@ -11,7 +11,7 @@ class TestGovernmentRoutes:
         mock_get_government.return_value = sample_government_data
 
         # Make request
-        response = client.get("/api/v1/government/test-govt-id")
+        response = client.get("/api/v1/governments/test-govt-id")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -24,7 +24,7 @@ class TestGovernmentRoutes:
         mock_get_government.return_value = None
 
         # Make request
-        response = client.get("/api/v1/government/nonexistent-id")
+        response = client.get("/api/v1/governments/nonexistent-id")
 
         # Check response
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -47,7 +47,7 @@ class TestGovernmentRoutes:
         update_data = {"name": "Updated Govt Name", "department": "Updated Department"}
 
         # Make request
-        response = client.put("/api/v1/government/test-govt-id", json=update_data)
+        response = client.put("/api/v1/governments/test-govt-id", json=update_data)
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -62,7 +62,7 @@ class TestGovernmentRoutes:
         mock_get_government.return_value = sample_government_data
 
         # Make request
-        response = client.get("/api/v1/government/test-govt-id/wallet")
+        response = client.get("/api/v1/governments/test-govt-id/wallet")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -105,7 +105,7 @@ class TestGovernmentRoutes:
         }
 
         response = client.post(
-            "/api/v1/government/test-govt-id/schemes", json=scheme_data
+            "/api/v1/governments/test-govt-id/schemes", json=scheme_data
         )
 
         # Check response
@@ -166,7 +166,7 @@ class TestGovernmentRoutes:
         disbursement_data = {"scheme_id": "test-scheme-id", "amount_per_user": 500}
 
         response = client.post(
-            "/api/v1/government/test-govt-id/disburse", json=disbursement_data
+            "/api/v1/governments/test-govt-id/disburse", json=disbursement_data
         )
 
         # Check response
@@ -195,7 +195,7 @@ class TestGovernmentRoutes:
         mock_query_schemes.return_value = [sample_scheme_data]
 
         # Make request
-        response = client.get("/api/v1/government/test-govt-id/schemes")
+        response = client.get("/api/v1/governments/test-govt-id/schemes")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK
@@ -221,7 +221,7 @@ class TestGovernmentRoutes:
         mock_get_all_citizens.return_value = [citizen_with_password]
 
         # Make request
-        response = client.get("/api/v1/government/test-govt-id/all-citizens")
+        response = client.get("/api/v1/governments/test-govt-id/all-citizens")
 
         # Check response
         assert response.status_code == status.HTTP_200_OK

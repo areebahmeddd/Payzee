@@ -20,10 +20,10 @@ router = APIRouter()
 
 
 # Get citizen profile
-@router.get("/{user_id}")
-async def get_citizen_profile(user_id: str):
+@router.get("/{citizen_id}")
+async def get_citizen_profile(citizen_id: str):
     # Check if citizen exists
-    citizen = get_citizen(user_id)
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -35,9 +35,9 @@ async def get_citizen_profile(user_id: str):
 
 
 # Update citizen profile
-@router.put("/{user_id}", response_model=MessageResponse)
-async def update_citizen_profile(user_id: str, data: dict = Body(...)):
-    citizen = get_citizen(user_id)
+@router.put("/{citizen_id}", response_model=MessageResponse)
+async def update_citizen_profile(citizen_id: str, data: dict = Body(...)):
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -49,14 +49,14 @@ async def update_citizen_profile(user_id: str, data: dict = Body(...)):
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    update_citizen(user_id, update_data)
+    update_citizen(citizen_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
-@router.get("/{user_id}/wallet")
-async def get_wallet(user_id: str):
-    citizen = get_citizen(user_id)
+@router.get("/{citizen_id}/wallet")
+async def get_wallet(citizen_id: str):
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -64,9 +64,9 @@ async def get_wallet(user_id: str):
 
 
 # Generate QR code for payment
-@router.get("/{user_id}/generate-qr")
-async def generate_qr(user_id: str):
-    citizen = get_citizen(user_id)
+@router.get("/{citizen_id}/generate-qr")
+async def generate_qr(citizen_id: str):
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -77,7 +77,7 @@ async def generate_qr(user_id: str):
         box_size=10,
         border=4,
     )
-    qr.add_data(user_id)  # TODO: Not enough data for QR code
+    qr.add_data(citizen_id)  # TODO: Not enough data for QR code
     qr.make(fit=True)
 
     # Create an image from the QR Code
@@ -88,15 +88,15 @@ async def generate_qr(user_id: str):
     img.save(buffered)
     img_str = base64.b64encode(buffered.getvalue()).decode()
 
-    return JSONResponse(content={"qr_code": img_str, "user_id": user_id})
+    return JSONResponse(content={"qr_code": img_str, "user_id": citizen_id})
 
 
 # Get transaction history
-@router.get("/{user_id}/transactions")
-async def get_transactions(user_id: str):
+@router.get("/{citizen_id}/transactions")
+async def get_transactions(citizen_id: str):
     # Find transactions where user is either sender or receiver
-    from_transactions = query_transactions_by_field("from_id", user_id)
-    to_transactions = query_transactions_by_field("to_id", user_id)
+    from_transactions = query_transactions_by_field("from_id", citizen_id)
+    to_transactions = query_transactions_by_field("to_id", citizen_id)
 
     transactions = []
 
@@ -115,10 +115,10 @@ async def get_transactions(user_id: str):
 
 
 # Transfer money to vendor
-@router.post("/{user_id}/pay", response_model=MessageResponse)
-async def pay_vendor(user_id: str, payment: PaymentRequest):
+@router.post("/{citizen_id}/pay", response_model=MessageResponse)
+async def pay_vendor(citizen_id: str, payment: PaymentRequest):
     # Check if citizen exists
-    citizen = get_citizen(user_id)
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -144,7 +144,7 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
 
     # Create a transaction
     transaction = Transaction(
-        from_id=user_id,
+        from_id=citizen_id,
         to_id=payment.vendor_id,
         amount=payment.amount,
         tx_type="citizen-to-vendor",
@@ -154,7 +154,7 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
 
     # Update citizen's wallet (reduce balance)
     update_citizen(
-        user_id,
+        citizen_id,
         {
             f"wallet_info.{wallet_type}.balance": citizen["wallet_info"][wallet_type][
                 "balance"
@@ -166,7 +166,7 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
     # Add transaction to citizen's transactions list
     array_union(
         "citizens:",
-        user_id,
+        citizen_id,
         f"wallet_info.{wallet_type}.transactions",
         [transaction.id],
     )
@@ -192,9 +192,9 @@ async def pay_vendor(user_id: str, payment: PaymentRequest):
 
 
 # View eligible schemes
-@router.get("/{user_id}/eligible-schemes")
-async def get_eligible_schemes(user_id: str):
-    citizen = get_citizen(user_id)
+@router.get("/{citizen_id}/eligible-schemes")
+async def get_eligible_schemes(citizen_id: str):
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -205,7 +205,7 @@ async def get_eligible_schemes(user_id: str):
     eligible_schemes = []
     for scheme in active_schemes:
         # Check if user is already a beneficiary
-        if "beneficiaries" in scheme and user_id in scheme["beneficiaries"]:
+        if "beneficiaries" in scheme and citizen_id in scheme["beneficiaries"]:
             scheme["already_enrolled"] = True
             eligible_schemes.append(scheme)
             continue
@@ -222,10 +222,10 @@ async def get_eligible_schemes(user_id: str):
 
 
 # Enroll in a scheme
-@router.post("/{user_id}/enroll-scheme/{scheme_id}", response_model=MessageResponse)
-async def enroll_scheme(user_id: str, scheme_id: str):
+@router.post("/{citizen_id}/enroll-scheme/{scheme_id}", response_model=MessageResponse)
+async def enroll_scheme(citizen_id: str, scheme_id: str):
     # Check if citizen exists
-    citizen = get_citizen(user_id)
+    citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
@@ -235,9 +235,9 @@ async def enroll_scheme(user_id: str, scheme_id: str):
         raise HTTPException(status_code=404, detail="Scheme not found")
 
     # Check if already enrolled
-    if "beneficiaries" in scheme and user_id in scheme["beneficiaries"]:
+    if "beneficiaries" in scheme and citizen_id in scheme["beneficiaries"]:
         raise HTTPException(status_code=409, detail="Already enrolled in this scheme")
 
     # Update scheme to add citizen as a beneficiary
-    array_union("schemes:", scheme_id, "beneficiaries", [user_id])
+    array_union("schemes:", scheme_id, "beneficiaries", [citizen_id])
     return JSONResponse(content={"message": "Successfully enrolled in scheme"})

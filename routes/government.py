@@ -24,10 +24,10 @@ router = APIRouter()
 
 
 # Get government profile
-@router.get("/{user_id}")
-async def get_government_profile(user_id: str):
+@router.get("/{government_id}")
+async def get_government_profile(government_id: str):
     # Check if government exists
-    govt = get_government(user_id)
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -39,9 +39,9 @@ async def get_government_profile(user_id: str):
 
 
 # Update government profile
-@router.put("/{user_id}", response_model=MessageResponse)
-async def update_government_profile(user_id: str, data: dict = Body(...)):
-    govt = get_government(user_id)
+@router.put("/{government_id}", response_model=MessageResponse)
+async def update_government_profile(government_id: str, data: dict = Body(...)):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -53,14 +53,14 @@ async def update_government_profile(user_id: str, data: dict = Body(...)):
     if not update_data:
         raise HTTPException(status_code=400, detail="No valid fields to update")
 
-    update_government(user_id, update_data)
+    update_government(government_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
 # Get wallet information
-@router.get("/{user_id}/wallet")
-async def get_wallet(user_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/wallet")
+async def get_wallet(government_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -68,9 +68,9 @@ async def get_wallet(user_id: str):
 
 
 # Get all citizens
-@router.get("/{user_id}/all-citizens")
-async def get_all_citizen_profiles(user_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/all-citizens")
+async def get_all_citizen_profiles(government_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -84,9 +84,9 @@ async def get_all_citizen_profiles(user_id: str):
 
 
 # Get specific citizen by ID
-@router.get("/{user_id}/citizen/{citizen_id}")
-async def get_specific_citizen(user_id: str, citizen_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/citizen/{citizen_id}")
+async def get_specific_citizen(government_id: str, citizen_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -101,9 +101,9 @@ async def get_specific_citizen(user_id: str, citizen_id: str):
 
 
 # Get all vendors
-@router.get("/{user_id}/all-vendors")
-async def get_all_vendor_profiles(user_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/all-vendors")
+async def get_all_vendor_profiles(government_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -117,9 +117,9 @@ async def get_all_vendor_profiles(user_id: str):
 
 
 # Get specific vendor by ID
-@router.get("/{user_id}/vendor/{vendor_id}")
-async def get_specific_vendor(user_id: str, vendor_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/vendor/{vendor_id}")
+async def get_specific_vendor(government_id: str, vendor_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -134,9 +134,9 @@ async def get_specific_vendor(user_id: str, vendor_id: str):
 
 
 # Get all transactions
-@router.get("/{user_id}/all-transactions")
-async def get_all_system_transactions(user_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/all-transactions")
+async def get_all_system_transactions(government_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -150,9 +150,9 @@ async def get_all_system_transactions(user_id: str):
 
 
 # Get specific transaction by ID
-@router.get("/{user_id}/transaction/{transaction_id}")
-async def get_specific_transaction(user_id: str, transaction_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/transaction/{transaction_id}")
+async def get_specific_transaction(government_id: str, transaction_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -164,9 +164,9 @@ async def get_specific_transaction(user_id: str, transaction_id: str):
 
 
 # Create a new scheme
-@router.post("/{user_id}/schemes", response_model=MessageResponse)
-async def create_scheme(user_id: str, scheme_data: SchemeCreate):
-    govt = get_government(user_id)
+@router.post("/{government_id}/schemes", response_model=MessageResponse)
+async def create_scheme(government_id: str, scheme_data: SchemeCreate):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -174,7 +174,7 @@ async def create_scheme(user_id: str, scheme_data: SchemeCreate):
     scheme = Scheme(
         name=scheme_data.name,
         description=scheme_data.description,
-        govt_id=user_id,
+        govt_id=government_id,
         amount=scheme_data.amount,
         eligibility_criteria=scheme_data.eligibility_criteria,
         tags=scheme_data.tags,
@@ -185,29 +185,29 @@ async def create_scheme(user_id: str, scheme_data: SchemeCreate):
     save_scheme(scheme.id, scheme_dict)
 
     # Add scheme to government's schemes list
-    array_union("governments:", user_id, "wallet_info.schemes", [scheme.id])
+    array_union("governments:", government_id, "wallet_info.schemes", [scheme.id])
     return JSONResponse(
         content={"message": "Scheme created successfully", "scheme_id": scheme.id}
     )
 
 
 # Get all schemes created by this government
-@router.get("/{user_id}/schemes")
-async def get_schemes(user_id: str):
-    govt = get_government(user_id)
+@router.get("/{government_id}/schemes")
+async def get_schemes(government_id: str):
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
     # Get schemes created by this government
-    schemes = query_schemes_by_field("govt_id", user_id)
+    schemes = query_schemes_by_field("govt_id", government_id)
     return JSONResponse(content=schemes)
 
 
 # Get beneficiaries of a specific scheme
-@router.get("/{user_id}/schemes/{scheme_id}/beneficiaries")
-async def get_scheme_beneficiaries(user_id: str, scheme_id: str):
+@router.get("/{government_id}/schemes/{scheme_id}/beneficiaries")
+async def get_scheme_beneficiaries(government_id: str, scheme_id: str):
     # Check if the government exists
-    govt = get_government(user_id)
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -217,7 +217,7 @@ async def get_scheme_beneficiaries(user_id: str, scheme_id: str):
         raise HTTPException(status_code=404, detail="Scheme not found")
 
     # Check if this government owns the scheme
-    if scheme["govt_id"] != user_id:
+    if scheme["govt_id"] != government_id:
         raise HTTPException(
             status_code=403, detail="Not authorized to access this scheme"
         )
@@ -237,10 +237,10 @@ async def get_scheme_beneficiaries(user_id: str, scheme_id: str):
 
 
 # Disburse funds to beneficiaries
-@router.post("/{user_id}/disburse", response_model=MessageResponse)
-async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
+@router.post("/{government_id}/disburse", response_model=MessageResponse)
+async def disburse_funds(government_id: str, disbursement: DisbursementRequest):
     # Check if the government exists
-    govt = get_government(user_id)
+    govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
@@ -250,7 +250,7 @@ async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
         raise HTTPException(status_code=404, detail="Scheme not found")
 
     # Check if this government owns the scheme
-    if scheme["govt_id"] != user_id:
+    if scheme["govt_id"] != government_id:
         raise HTTPException(
             status_code=403, detail="Not authorized to access this scheme"
         )
@@ -271,7 +271,7 @@ async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
 
         # Create a transaction for this disbursement
         transaction = Transaction(
-            from_id=user_id,
+            from_id=government_id,
             to_id=citizen_id,
             amount=disbursement.amount_per_user,
             tx_type="government-to-citizen",
@@ -301,7 +301,7 @@ async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
 
         # Deduct from government wallet
         update_government(
-            user_id,
+            government_id,
             {
                 "wallet_info.balance": govt["wallet_info"]["balance"]
                 - disbursement.amount_per_user,
@@ -310,7 +310,7 @@ async def disburse_funds(user_id: str, disbursement: DisbursementRequest):
 
         # Add transaction to government's transactions
         array_union(
-            "governments:", user_id, "wallet_info.transactions", [transaction.id]
+            "governments:", government_id, "wallet_info.transactions", [transaction.id]
         )
 
         # Save transaction

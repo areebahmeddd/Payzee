@@ -45,7 +45,6 @@ async def citizen_signup(data: CitizenSignup):
 
     # Save to database
     save_citizen(citizen_id, citizen_dict)
-
     return JSONResponse(
         content={
             "message": "Citizen account created successfully",
@@ -75,7 +74,6 @@ async def vendor_signup(data: VendorSignup):
     vendor_id = vendor_dict["account_info"]["id"]
 
     save_vendor(vendor_id, vendor_dict)
-
     return JSONResponse(
         content={
             "message": "Vendor account created successfully",
@@ -104,7 +102,6 @@ async def government_signup(data: GovernmentSignup):
     govt_id = government_dict["account_info"]["id"]
 
     save_government(govt_id, government_dict)
-
     return JSONResponse(
         content={
             "message": "Government account created successfully",

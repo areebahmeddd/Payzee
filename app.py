@@ -28,9 +28,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(citizen_router, prefix="/api/v1/citizen", tags=["citizen"])
-app.include_router(vendor_router, prefix="/api/v1/vendor", tags=["vendor"])
-app.include_router(government_router, prefix="/api/v1/government", tags=["government"])
+app.include_router(citizen_router, prefix="/api/v1/citizens", tags=["citizen"])
+app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["vendor"])
+app.include_router(government_router, prefix="/api/v1/governments", tags=["government"])
 
 
 @app.get("/", response_class=HTMLResponse)
