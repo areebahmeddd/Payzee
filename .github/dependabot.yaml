@@ -10,6 +10,9 @@ updates:
       all-dependencies:
         patterns:
           - "*"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -20,3 +23,6 @@ updates:
       all-actions:
         patterns:
           - "*"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
