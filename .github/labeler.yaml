@@ -1,50 +1,97 @@
-'🔧 GitHub Actions':
+'🚀 Core App':
   - changed-files:
-    - any-glob-to-any-file: '.github/**/*'
+    - any-glob-to-any-file: 'app.py'
 
-'🌐 API':
+'🔐 Auth System':
   - changed-files:
-    - any-glob-to-any-file: 'routes/**/*'
+    - any-glob-to-any-file: 'routes/auth.py'
+    - any-glob-to-any-file: 'models/api.py'
 
-'🗄️ Database':
+'👤 Citizen API':
   - changed-files:
-    - any-glob-to-any-file: 'db/**/*'
+    - any-glob-to-any-file: 'routes/citizen.py'
+    - any-glob-to-any-file: 'models/citizen.py'
 
-'📊 Model':
+'💼 Vendor API':
   - changed-files:
-    - any-glob-to-any-file: 'models/**/*'
+    - any-glob-to-any-file: 'routes/vendor.py'
+    - any-glob-to-any-file: 'models/vendor.py'
 
-'🔗 Middleware':
+'🏛️ Government API':
   - changed-files:
-    - any-glob-to-any-file: 'middleware/**/*'
+    - any-glob-to-any-file: 'routes/government.py'
+    - any-glob-to-any-file: 'models/government.py'
 
-'🛠️ Utils':
+'💰 Transaction System':
   - changed-files:
-    - any-glob-to-any-file: 'utils/**/*'
+    - any-glob-to-any-file: 'models/transaction.py'
+    - any-glob-to-any-file: 'models/scheme.py'
+    - any-glob-to-any-file: 'utils/db_ops.py'
 
-'🧪 Tests':
+'⚙️ Project Configuration':
   - changed-files:
-    - any-glob-to-any-file: 'tests/**/*'
-
-'📝 Documentation':
-  - changed-files:
-    - any-glob-to-any-file: 'docs/**/*'
-    - any-glob-to-any-file: '*.md'
-    - any-glob-to-any-file: 'README.md'
+    - any-glob-to-any-file: '.env'
+    - any-glob-to-any-file: '.env.example'
+    - any-glob-to-any-file: '.gitignore'
+    - any-glob-to-any-file: '.gitattributes'
 
 '🐳 Docker':
   - changed-files:
     - any-glob-to-any-file: 'docker/**/*'
-    - any-glob-to-any-file: 'Dockerfile'
     - any-glob-to-any-file: 'docker-compose.yaml'
     - any-glob-to-any-file: '.dockerignore'
+    - any-glob-to-any-file: '.devcontainer/**/*'
 
-'⚙️ Config':
+'🔧 CI/CD Pipeline':
   - changed-files:
-    - any-glob-to-any-file: '*.toml'
-    - any-glob-to-any-file: '*.yaml'
-    - any-glob-to-any-file: '*.yml'
-    - any-glob-to-any-file: '*.json'
-    - any-glob-to-any-file: '.env.example'
+    - any-glob-to-any-file: '.github/workflows/**/*'
+
+'📋 GitHub Config':
+  - changed-files:
+    - any-glob-to-any-file: '.github/ISSUE_TEMPLATE.md'
+    - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
+    - any-glob-to-any-file: '.github/CODEOWNERS'
+    - any-glob-to-any-file: '.github/labeler.yaml'
+    - any-glob-to-any-file: '.github/dependabot.yaml'
+
+'📦 Dependencies':
+  - changed-files:
+    - any-glob-to-any-file: 'pyproject.toml'
+    - any-glob-to-any-file: 'poetry.lock'
+
+'🧩 Middleware':
+  - changed-files:
+    - any-glob-to-any-file: 'middleware/**/*'
+    - any-glob-to-any-file: 'middleware/middleware.py'
+
+'🛠️ Utilities':
+  - changed-files:
+    - any-glob-to-any-file: 'utils/**/*.py'
+    - any-glob-to-any-file: 'utils/common.py'
+
+'🗄️ Redis Database':
+  - changed-files:
+    - any-glob-to-any-file: 'db/redis_operations.py'
+    - any-glob-to-any-file: 'db/redis_config.py'
+    - any-glob-to-any-file: 'utils/db_helpers.py'
+
+'🧪 Tests':
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**/*.py'
+    - any-glob-to-any-file: 'tests/conftest.py'
+
+'🔧 Development Tools':
+  - changed-files:
     - any-glob-to-any-file: '.pre-commit-config.yaml'
     - any-glob-to-any-file: '.editorconfig'
+    - any-glob-to-any-file: 'scripts/**/*'
+    - any-glob-to-any-file: 'Makefile'
+
+'📐 Templates':
+  - changed-files:
+    - any-glob-to-any-file: 'templates/**/*'
+
+'📚 Documentation':
+  - changed-files:
+    - any-glob-to-any-file: 'docs/**/*'
+    - any-glob-to-any-file: 'README.md'
