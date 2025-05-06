@@ -6,42 +6,30 @@
     <title>Payzee - Digital Payment System</title>
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             margin: 0;
-            padding: 0;
-            color: #333;
         }
         header {
-            border-bottom: 1px solid #eee;
             padding: 1rem;
+            box-shadow: 0 2px 2px #1a1a1a1a;
         }
         .logo {
-            font-weight: bold;
             font-size: 1.2rem;
+            font-weight: bold;
         }
         main {
-            max-width: 800px;
-            margin: 0 auto;
+            flex-grow: 1;
             padding: 2rem 1rem;
             text-align: center;
         }
-        h1 {
-            margin-bottom: 0.5rem;
-        }
-        p {
-            margin-bottom: 1rem;
-            color: #555;
-        }
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
         footer {
-            border-top: 1px solid #eee;
             padding: 1rem;
             text-align: center;
-            font-size: 0.9rem;
             color: #666;
+            border-top: 1px solid #eee;
         }
     </style>
 </head>
@@ -54,5 +42,6 @@
         <p>A secure digital payment system powered by e-rupee.</p>
         <p>API documentation is available at <a href="/docs">/docs</a>.</p>
     </main>
+    <footer>Made with ❤️ by <a href="https://github.com/1mindlabs">1MindLabs</a></footer>
 </body>
 </html>
