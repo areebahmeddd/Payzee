@@ -1,0 +1,50 @@
+'🔧 GitHub Actions':
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
+
+'🌐 API':
+  - changed-files:
+    - any-glob-to-any-file: 'routes/**/*'
+
+'🗄️ Database':
+  - changed-files:
+    - any-glob-to-any-file: 'db/**/*'
+
+'📊 Model':
+  - changed-files:
+    - any-glob-to-any-file: 'models/**/*'
+
+'🔗 Middleware':
+  - changed-files:
+    - any-glob-to-any-file: 'middleware/**/*'
+
+'🛠️ Utils':
+  - changed-files:
+    - any-glob-to-any-file: 'utils/**/*'
+
+'🧪 Tests':
+  - changed-files:
+    - any-glob-to-any-file: 'tests/**/*'
+
+'📝 Documentation':
+  - changed-files:
+    - any-glob-to-any-file: 'docs/**/*'
+    - any-glob-to-any-file: '*.md'
+    - any-glob-to-any-file: 'README.md'
+
+'🐳 Docker':
+  - changed-files:
+    - any-glob-to-any-file: 'docker/**/*'
+    - any-glob-to-any-file: 'Dockerfile'
+    - any-glob-to-any-file: 'docker-compose.yaml'
+    - any-glob-to-any-file: '.dockerignore'
+
+'⚙️ Config':
+  - changed-files:
+    - any-glob-to-any-file: '*.toml'
+    - any-glob-to-any-file: '*.yaml'
+    - any-glob-to-any-file: '*.yml'
+    - any-glob-to-any-file: '*.json'
+    - any-glob-to-any-file: '.env.example'
+    - any-glob-to-any-file: '.pre-commit-config.yaml'
+    - any-glob-to-any-file: '.editorconfig'
