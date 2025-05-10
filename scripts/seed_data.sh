@@ -134,7 +134,7 @@ citizens = [
         "occupation": "software engineer",
         "caste": "General",
         "dob": "15-05-1990",
-        "annual_income": 1200000
+        "annual_income": 1200000,
         "image_url": "https://cdn.pixabay.com/photo/2023/11/17/21/43/trail-8395089_1280.jpg",
     },
     {
@@ -149,7 +149,7 @@ citizens = [
         "occupation": "farmer",
         "caste": "OBC",
         "dob": "22-08-1985",
-        "annual_income": 80000
+        "annual_income": 80000,
         "image_url": "https://cdn.pixabay.com/photo/2019/10/02/17/19/mountains-4521455_1280.jpg",
     },
     {
@@ -164,7 +164,7 @@ citizens = [
         "occupation": "student",
         "caste": "SC",
         "dob": "10-12-1998",
-        "annual_income": 150000
+        "annual_income": 150000,
         "image_url": "https://cdn.pixabay.com/photo/2022/05/14/15/49/mountain-7195958_1280.jpg",
     },
     {
@@ -179,7 +179,7 @@ citizens = [
         "occupation": "farmer",
         "caste": "OBC",
         "dob": "03-06-1982",
-        "annual_income": 75000
+        "annual_income": 75000,
         "image_url": "https://cdn.pixabay.com/photo/2020/04/28/13/21/landscape-5104510_1280.jpg",
     },
     {
@@ -194,7 +194,7 @@ citizens = [
         "occupation": "student",
         "caste": "SC",
         "dob": "25-09-1999",
-        "annual_income": 120000
+        "annual_income": 120000,
         "image_url": "https://cdn.pixabay.com/photo/2023/05/28/09/24/south-tyrol-8023224_1280.jpg",
     }
 ]
@@ -251,7 +251,7 @@ vendors = [
         "business_id": "GSTIN22AAAAA1111Z",
         "license_type": "private",
         "gender": "male",
-        "occupation": "retail business"
+        "occupation": "retail business",
         "image_url": "https://cdn.pixabay.com/photo/2019/07/20/20/11/nature-4351455_1280.jpg",
     },
     {
@@ -264,7 +264,7 @@ vendors = [
         "business_id": "GSTIN09BBBBB2222Y",
         "license_type": "public",
         "gender": "female",
-        "occupation": "healthcare"
+        "occupation": "healthcare",
         "image_url": "https://cdn.pixabay.com/photo/2019/10/07/11/26/winter-landscape-4532412_1280.jpg",
     },
     {
@@ -277,7 +277,7 @@ vendors = [
         "business_id": "GSTIN19CCCCC3333X",
         "license_type": "government",
         "gender": "male",
-        "occupation": "retail business"
+        "occupation": "retail business",
         "image_url": "https://cdn.pixabay.com/photo/2024/09/03/18/03/sand-9019849_1280.jpg",
     }
 ]
@@ -298,7 +298,7 @@ for vendor_data in vendors:
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "vendor",
-            "gender": vendor_data["gender"]
+            "gender": vendor_data["gender"],
             "image_url": vendor_data["image_url"],
         },
         "business_info": {
@@ -365,7 +365,7 @@ for govt_data in governments:
             "updated_at": datetime.now().isoformat(),
             "user_type": "government",
             "jurisdiction": govt_data["jurisdiction"],
-            "govt_id": govt_data["govt_id"]
+            "govt_id": govt_data["govt_id"],
             "image_url": govt_data["image_url"],
         },
         "wallet_info": {
