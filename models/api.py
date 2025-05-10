@@ -52,25 +52,26 @@ class SchemeCreate(BaseModel):
     description: str
     amount: float
     status: str = "active"  # active, inactive, completed
-    eligibility_criteria: Optional[Dict[str, Any]] = None
+    eligibility_criteria: Dict[str, Any]
     tags: Optional[List[str]] = None
 
     class Config:
         schema_extra = {
             "example": {
-                "name": "Senior Citizen Pension Scheme",
-                "description": "Monthly pension for elderly citizens",
+                "name": "Pradhan Mantri Vaya Vandana Yojana",
+                "description": "Monthly pension scheme for elderly citizens above 60 years",
                 "amount": 3000.00,
                 "status": "active",
                 "eligibility_criteria": {
-                    "min_age": 65,
+                    "min_age": 60,
                     "gender": "any",  # "male", "female", "other", "any"
-                    "state": "all",  # specific state name or "all"
-                    "district": "all",  # specific district name or "all"
-                    "city": "all",  # specific city name or "all"
-                    "caste": "all"  # specific caste category or "all"
+                    "state": "Karnataka",  # specific state name or "all"
+                    "district": "Bangalore Urban",  # specific district name or "all"
+                    "city": "Bangalore",  # specific city name or "all"
+                    "caste": "General",  # "General", "OBC", "SC", "ST", "all"
+                    "income_limit": 150000,  # annual income limit in INR
                 },
-                "tags": ["pension", "elderly", "monthly"]
+                "tags": ["pension", "elderly", "senior citizen", "retirement"],
             }
         }
 

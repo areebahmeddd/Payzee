@@ -177,11 +177,12 @@ async def create_scheme(government_id: str, scheme_data: SchemeCreate):
         description=scheme_data.description,
         govt_id=government_id,
         amount=scheme_data.amount,
+        status=scheme_data.status,
         eligibility_criteria=scheme_data.eligibility_criteria,
-        tags=scheme_data.tags,
+        tags=scheme_data.tags or [],
     )
-    scheme_dict = scheme.to_dict()
 
+    scheme_dict = scheme.to_dict()
     # Save scheme to database
     save_scheme(scheme.id, scheme_dict)
 

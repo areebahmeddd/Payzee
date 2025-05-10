@@ -4,7 +4,14 @@ from datetime import datetime, timezone
 
 class Scheme:
     def __init__(
-        self, name, description, govt_id, amount, eligibility_criteria=None, tags=None
+        self,
+        name,
+        description,
+        govt_id,
+        amount,
+        eligibility_criteria=None,
+        tags=None,
+        status="active",
     ):
         self.id = str(uuid.uuid4())
         self.name = name
@@ -16,7 +23,7 @@ class Scheme:
         self.beneficiaries = []  # List of citizen IDs who are beneficiaries
         self.created_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
-        self.status = "active"  # active, inactive, completed
+        self.status = status  # active, inactive, completed
 
     def to_dict(self):
         return {
@@ -42,10 +49,10 @@ class Scheme:
             amount=data["amount"],
             eligibility_criteria=data.get("eligibility_criteria"),
             tags=data.get("tags"),
+            status=data.get("status", "active"),
         )
         scheme.id = data["id"]
         scheme.beneficiaries = data["beneficiaries"]
         scheme.created_at = data["created_at"]
         scheme.updated_at = data["updated_at"]
-        scheme.status = data["status"]
         return scheme
