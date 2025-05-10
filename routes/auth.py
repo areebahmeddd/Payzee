@@ -104,9 +104,9 @@ async def government_signup(data: GovernmentSignup):
         name=data.name,
         password=data.password,
         email=data.email,
-        department=data.department,
         jurisdiction=data.jurisdiction,
         govt_id=data.govt_id,
+        image_url=data.image_url,
     )
 
     government_dict = government.to_dict()
@@ -125,7 +125,7 @@ async def government_signup(data: GovernmentSignup):
 @router.post("/login", response_model=MessageResponse)
 async def login(data: LoginRequest):
     # Check in citizens collection
-    citizen_results = query_citizens_by_field("id_number", data.id_number)
+    citizen_results = query_citizens_by_field("personal_info.id_number", data.id_number)
     if citizen_results:
         citizen = citizen_results[0]
         if citizen["account_info"]["password"] == data.password:
@@ -138,7 +138,7 @@ async def login(data: LoginRequest):
             )
 
     # Check in vendors collection
-    vendor_results = query_vendors_by_field("business_id", data.id_number)
+    vendor_results = query_vendors_by_field("business_info.business_id", data.id_number)
     if vendor_results:
         vendor = vendor_results[0]
         if vendor["account_info"]["password"] == data.password:
@@ -151,7 +151,7 @@ async def login(data: LoginRequest):
             )
 
     # Check in governments collection
-    govt_results = query_governments_by_field("govt_id", data.id_number)
+    govt_results = query_governments_by_field("account_info.govt_id", data.id_number)
     if govt_results:
         govt = govt_results[0]
         if govt["account_info"]["password"] == data.password:

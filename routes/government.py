@@ -1,17 +1,14 @@
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
-from models.api import DisbursementRequest, SchemeCreate, MessageResponse
-from models.transaction import Transaction
+from models.api import SchemeCreate, MessageResponse
 from models.scheme import Scheme
 from db import (
     get_government,
     update_government,
     delete_government,
     get_citizen,
-    update_citizen,
     get_scheme,
     save_scheme,
-    save_transaction,
     query_schemes_by_field,
     get_all_citizens,
     get_all_vendors,
@@ -20,7 +17,7 @@ from db import (
     get_vendor,
     get_transaction,
 )
-from db.redis_config import GOVERNMENTS_PREFIX, CITIZENS_PREFIX
+from db.redis_config import GOVERNMENTS_PREFIX
 
 router = APIRouter()
 
@@ -333,95 +330,3 @@ async def get_scheme_beneficiaries(government_id: str, scheme_id: str):
                 beneficiaries.append(citizen)
 
     return JSONResponse(content=beneficiaries)
-
-
-# Disburse funds to beneficiaries
-@router.post("/{government_id}/disburse", response_model=MessageResponse)
-async def disburse_funds(government_id: str, disbursement: DisbursementRequest):
-    # Check if the government exists
-    govt = get_government(government_id)
-    if not govt:
-        raise HTTPException(status_code=404, detail="Government not found")
-
-    # Check if the scheme exists
-    scheme = get_scheme(disbursement.scheme_id)
-    if not scheme:
-        raise HTTPException(status_code=404, detail="Scheme not found")
-
-    # Check if this government owns the scheme
-    if scheme["govt_id"] != government_id:
-        raise HTTPException(
-            status_code=403, detail="Not authorized to access this scheme"
-        )
-
-    # Check if there's enough balance in the government wallet
-    if govt["wallet_info"]["balance"] < disbursement.amount_per_user * len(
-        scheme["beneficiaries"]
-    ):
-        raise HTTPException(status_code=400, detail="Insufficient balance")
-
-    # Disburse funds to each beneficiary
-    successful_disbursements = 0
-    for citizen_id in scheme["beneficiaries"]:
-        # Skip if citizen doesn't exist
-        citizen = get_citizen(citizen_id)
-        if not citizen:
-            continue
-
-        # Create a transaction for this disbursement
-        transaction = Transaction(
-            from_id=government_id,
-            to_id=citizen_id,
-            amount=disbursement.amount_per_user,
-            tx_type="government-to-citizen",
-            scheme_id=disbursement.scheme_id,
-            description=f"Disbursement for {scheme['name']}",
-        )
-        transaction_dict = transaction.to_dict()
-
-        # Update citizen's wallet
-        update_citizen(
-            citizen_id,
-            {
-                "wallet_info.govt_wallet.balance": citizen["wallet_info"][
-                    "govt_wallet"
-                ]["balance"]
-                + disbursement.amount_per_user,
-            },
-        )
-
-        # Add transaction to citizen's transactions
-        array_union(
-            CITIZENS_PREFIX,
-            citizen_id,
-            "wallet_info.govt_wallet.transactions",
-            [transaction.id],
-        )
-
-        # Deduct from government wallet
-        update_government(
-            government_id,
-            {
-                "wallet_info.balance": govt["wallet_info"]["balance"]
-                - disbursement.amount_per_user,
-            },
-        )
-
-        # Add transaction to government's transactions
-        array_union(
-            GOVERNMENTS_PREFIX,
-            government_id,
-            "wallet_info.transactions",
-            [transaction.id],
-        )
-
-        # Save transaction
-        save_transaction(transaction.id, transaction_dict)
-        successful_disbursements += 1
-
-    return JSONResponse(
-        content={
-            "message": "Funds disbursed successfully",
-            "beneficiaries_count": successful_disbursements,
-        }
-    )

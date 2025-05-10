@@ -25,8 +25,8 @@ class Vendor:
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
             "user_type": "vendor",
-            "image_url": image_url,
             "gender": gender,
+            "image_url": image_url,
         }
 
         self.business_info = {

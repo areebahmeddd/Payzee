@@ -130,12 +130,12 @@ citizens = [
         "address": "42, Linking Road, Bandra West, Mumbai, Maharashtra, 400050",
         "id_type": "Aadhaar",
         "id_number": "123456789012",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "male",
         "occupation": "software engineer",
         "caste": "General",
         "dob": "15-05-1990",
         "annual_income": 1200000
+        "image_url": "https://cdn.pixabay.com/photo/2023/11/17/21/43/trail-8395089_1280.jpg",
     },
     {
         "name": "Shivansh Karan",
@@ -145,12 +145,12 @@ citizens = [
         "address": "15, MG Road, Bengaluru, Karnataka, 560001",
         "id_type": "Aadhaar",
         "id_number": "234567890123",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "male",
         "occupation": "farmer",
         "caste": "OBC",
         "dob": "22-08-1985",
         "annual_income": 80000
+        "image_url": "https://cdn.pixabay.com/photo/2019/10/02/17/19/mountains-4521455_1280.jpg",
     },
     {
         "name": "Alfiya Fatima",
@@ -160,12 +160,12 @@ citizens = [
         "address": "78, Civil Lines, Delhi, 110054",
         "id_type": "Aadhaar",
         "id_number": "345678901234",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "female",
         "occupation": "student",
         "caste": "SC",
         "dob": "10-12-1998",
         "annual_income": 150000
+        "image_url": "https://cdn.pixabay.com/photo/2022/05/14/15/49/mountain-7195958_1280.jpg",
     },
     {
         "name": "Rajni Singh",
@@ -175,12 +175,12 @@ citizens = [
         "address": "22, Andheri East, Mumbai, Maharashtra, 400069",
         "id_type": "Aadhaar",
         "id_number": "456789012345",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "female",
         "occupation": "farmer",
         "caste": "OBC",
         "dob": "03-06-1982",
         "annual_income": 75000
+        "image_url": "https://cdn.pixabay.com/photo/2020/04/28/13/21/landscape-5104510_1280.jpg",
     },
     {
         "name": "Manoj Kumar",
@@ -190,12 +190,12 @@ citizens = [
         "address": "45, Jayanagar, Bengaluru, Karnataka, 560041",
         "id_type": "Aadhaar",
         "id_number": "567890123456",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "male",
         "occupation": "student",
         "caste": "SC",
         "dob": "25-09-1999",
         "annual_income": 120000
+        "image_url": "https://cdn.pixabay.com/photo/2023/05/28/09/24/south-tyrol-8023224_1280.jpg",
     }
 ]
 
@@ -250,9 +250,9 @@ vendors = [
         "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
         "business_id": "GSTIN22AAAAA1111Z",
         "license_type": "private",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "male",
         "occupation": "retail business"
+        "image_url": "https://cdn.pixabay.com/photo/2019/07/20/20/11/nature-4351455_1280.jpg",
     },
     {
         "name": "Priya Sharma",
@@ -263,9 +263,9 @@ vendors = [
         "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
         "business_id": "GSTIN09BBBBB2222Y",
         "license_type": "public",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "female",
         "occupation": "healthcare"
+        "image_url": "https://cdn.pixabay.com/photo/2019/10/07/11/26/winter-landscape-4532412_1280.jpg",
     },
     {
         "name": "Abdul Khan",
@@ -276,9 +276,9 @@ vendors = [
         "address": "10, Park Street, Kolkata, West Bengal, 700016",
         "business_id": "GSTIN19CCCCC3333X",
         "license_type": "government",
-        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
         "gender": "male",
         "occupation": "retail business"
+        "image_url": "https://cdn.pixabay.com/photo/2024/09/03/18/03/sand-9019849_1280.jpg",
     }
 ]
 
@@ -298,8 +298,8 @@ for vendor_data in vendors:
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "vendor",
-            "image_url": vendor_data["image_url"],
             "gender": vendor_data["gender"]
+            "image_url": vendor_data["image_url"],
         },
         "business_info": {
             "business_name": vendor_data["business_name"],
@@ -326,25 +326,25 @@ governments = [
         "name": "Ministry of Social Justice",
         "email": "social.justice@gov.in",
         "password": "admin@123",
-        "department": "Social Justice and Empowerment",
         "jurisdiction": "Central",
-        "govt_id": "DOPT0001"
+        "govt_id": "DOPT0001",
+        "image_url": "https://cdn.pixabay.com/photo/2016/10/24/22/43/dubai-1767540_1280.jpg"
     },
     {
         "name": "Karnataka Rural Development",
         "email": "rural.dev@karnataka.gov.in",
         "password": "admin@123",
-        "department": "Rural Development",
         "jurisdiction": "State",
-        "govt_id": "KARD0002"
+        "govt_id": "KARD0002",
+        "image_url": "https://cdn.pixabay.com/photo/2023/06/21/16/26/warnemunde-8079731_1280.jpg"
     },
     {
         "name": "Delhi Social Welfare Department",
         "email": "dsw@delhi.gov.in",
         "password": "admin@123",
-        "department": "Social Welfare",
         "jurisdiction": "State",
-        "govt_id": "DELSW003"
+        "govt_id": "DELSW003",
+        "image_url": "https://cdn.pixabay.com/photo/2024/02/23/21/25/landscape-8592826_1280.jpg"
     }
 ]
 
@@ -364,9 +364,9 @@ for govt_data in governments:
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "government",
-            "department": govt_data["department"],
             "jurisdiction": govt_data["jurisdiction"],
             "govt_id": govt_data["govt_id"]
+            "image_url": govt_data["image_url"],
         },
         "wallet_info": {
             "balance": random.randint(1000000, 10000000),

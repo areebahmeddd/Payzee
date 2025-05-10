@@ -37,9 +37,9 @@ class GovernmentSignup(BaseModel):
     name: str
     password: str
     email: Optional[EmailStr] = None
-    department: str
     jurisdiction: str
     govt_id: str
+    image_url: Optional[str] = None
 
 
 # Login model
@@ -88,12 +88,6 @@ class SchemeCreate(BaseModel):
         }
 
 
-# Disbursement model
-class DisbursementRequest(BaseModel):
-    scheme_id: str
-    amount_per_user: float
-
-
 # Response models
 class MessageResponse(BaseModel):
     message: str
@@ -101,4 +95,3 @@ class MessageResponse(BaseModel):
     user_type: Optional[str] = None
     transaction_id: Optional[str] = None
     scheme_id: Optional[str] = None
-    beneficiaries_count: Optional[int] = None
