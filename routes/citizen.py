@@ -15,6 +15,7 @@ from db import (
     query_transactions_by_field,
     array_union,
 )
+from db.redis_config import SCHEMES_PREFIX, CITIZENS_PREFIX, VENDORS_PREFIX
 
 router = APIRouter()
 
@@ -165,7 +166,7 @@ async def pay_vendor(citizen_id: str, payment: PaymentRequest):
 
     # Add transaction to citizen's transactions list
     array_union(
-        "citizens:",
+        CITIZENS_PREFIX,
         citizen_id,
         f"wallet_info.{wallet_type}.transactions",
         [transaction.id],
@@ -181,7 +182,7 @@ async def pay_vendor(citizen_id: str, payment: PaymentRequest):
 
     # Add transaction to vendor's transactions list
     array_union(
-        "vendors:", payment.vendor_id, "wallet_info.transactions", [transaction.id]
+        VENDORS_PREFIX, payment.vendor_id, "wallet_info.transactions", [transaction.id]
     )
 
     # Save transaction to database
@@ -239,5 +240,5 @@ async def enroll_scheme(citizen_id: str, scheme_id: str):
         raise HTTPException(status_code=409, detail="Already enrolled in this scheme")
 
     # Update scheme to add citizen as a beneficiary
-    array_union("schemes:", scheme_id, "beneficiaries", [citizen_id])
+    array_union(SCHEMES_PREFIX, scheme_id, "beneficiaries", [citizen_id])
     return JSONResponse(content={"message": "Successfully enrolled in scheme"})

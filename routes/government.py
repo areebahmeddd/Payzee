@@ -19,6 +19,7 @@ from db import (
     get_vendor,
     get_transaction,
 )
+from db.redis_config import GOVERNMENTS_PREFIX, CITIZENS_PREFIX
 
 router = APIRouter()
 
@@ -185,7 +186,7 @@ async def create_scheme(government_id: str, scheme_data: SchemeCreate):
     save_scheme(scheme.id, scheme_dict)
 
     # Add scheme to government's schemes list
-    array_union("governments:", government_id, "wallet_info.schemes", [scheme.id])
+    array_union(GOVERNMENTS_PREFIX, government_id, "wallet_info.schemes", [scheme.id])
     return JSONResponse(
         content={"message": "Scheme created successfully", "scheme_id": scheme.id}
     )
@@ -293,7 +294,7 @@ async def disburse_funds(government_id: str, disbursement: DisbursementRequest):
 
         # Add transaction to citizen's transactions
         array_union(
-            "citizens:",
+            CITIZENS_PREFIX,
             citizen_id,
             "wallet_info.govt_wallet.transactions",
             [transaction.id],
@@ -310,7 +311,10 @@ async def disburse_funds(government_id: str, disbursement: DisbursementRequest):
 
         # Add transaction to government's transactions
         array_union(
-            "governments:", government_id, "wallet_info.transactions", [transaction.id]
+            GOVERNMENTS_PREFIX,
+            government_id,
+            "wallet_info.transactions",
+            [transaction.id],
         )
 
         # Save transaction

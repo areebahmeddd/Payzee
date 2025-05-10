@@ -12,15 +12,15 @@ redis_client = redis.Redis(
 )
 
 # Collection prefixes for different entity types
-CITIZENS_PREFIX = "citizens:"
-VENDORS_PREFIX = "vendors:"
-GOVERNMENTS_PREFIX = "governments:"
-SCHEMES_PREFIX = "schemes:"
-TRANSACTIONS_PREFIX = "transactions:"
+CITIZENS_PREFIX = "citizen:"
+VENDORS_PREFIX = "vendor:"
+GOVERNMENTS_PREFIX = "govt:"
+SCHEMES_PREFIX = "scheme:"
+TRANSACTIONS_PREFIX = "txn:"
 
 # Index sets to track all entities of each type
-CITIZENS_SET = "citizens_set"
-VENDORS_SET = "vendors_set"
-GOVERNMENTS_SET = "governments_set"
-SCHEMES_SET = "schemes_set"
-TRANSACTIONS_SET = "transactions_set"
+CITIZENS_SET = "citizens"
+VENDORS_SET = "vendors"
+GOVERNMENTS_SET = "governments"
+SCHEMES_SET = "schemes"
+TRANSACTIONS_SET = "transactions"
