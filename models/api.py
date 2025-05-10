@@ -9,7 +9,8 @@ class CitizenSignup(BaseModel):
     password: str
     phone: Optional[str] = None
     address: Optional[str] = None
-    id_proof: Optional[str] = None
+    id_type: str = "Aadhaar"
+    id_number: str
 
 
 class VendorSignup(BaseModel):
@@ -20,6 +21,7 @@ class VendorSignup(BaseModel):
     address: Optional[str] = None
     business_name: str
     business_id: Optional[str] = None
+    license_type: str
 
 
 class GovernmentSignup(BaseModel):

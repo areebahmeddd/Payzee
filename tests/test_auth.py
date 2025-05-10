@@ -16,7 +16,8 @@ class TestAuthRoutes:
             "password": "password123",
             "phone": "1234567890",
             "address": "123 Test St",
-            "id_proof": "ABC123",
+            "id_type": "Aadhaar",
+            "id_number": "123456789012",
         }
 
         # Send request to the endpoint
@@ -62,6 +63,7 @@ class TestAuthRoutes:
             "email": "vendor@example.com",
             "password": "password123",
             "business_name": "Test Business",
+            "license_type": "private",
         }
 
         # Send request to the endpoint

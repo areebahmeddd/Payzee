@@ -36,7 +36,8 @@ async def citizen_signup(data: CitizenSignup):
         password=data.password,
         phone=data.phone,
         address=data.address,
-        id_proof=data.id_proof,
+        id_type=data.id_type,
+        id_number=data.id_number,
     )
 
     # Get citizen as dictionary
@@ -68,6 +69,7 @@ async def vendor_signup(data: VendorSignup):
         phone=data.phone,
         address=data.address,
         business_id=data.business_id,
+        license_type=data.license_type,
     )
 
     vendor_dict = vendor.to_dict()

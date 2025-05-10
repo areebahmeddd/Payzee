@@ -27,6 +27,12 @@ def sample_citizen_data():
             "password": "password123",
             "user_type": "citizen",
         },
+        "personal_info": {
+            "phone": "+91 9876543210",
+            "address": "Test Address",
+            "id_type": "Aadhaar",
+            "id_number": "123456789012",
+        },
         "wallet_info": {
             "govt_wallet": {"balance": 1000, "transactions": []},
             "personal_wallet": {"balance": 500, "transactions": []},
@@ -42,8 +48,14 @@ def sample_vendor_data():
             "name": "Test Vendor",
             "email": "vendor@example.com",
             "password": "password123",
-            "business_name": "Test Business",
             "user_type": "vendor",
+        },
+        "business_info": {
+            "business_name": "Test Business",
+            "phone": "+91 9988776655",
+            "address": "Test Address",
+            "business_id": "GSTIN22AAAAA1111Z",
+            "license_type": "private",
         },
         "wallet_info": {"balance": 2000, "transactions": []},
     }

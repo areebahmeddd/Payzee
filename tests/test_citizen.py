@@ -161,6 +161,8 @@ class TestCitizenRoutes:
         assert response.json()["message"] == "Successfully enrolled in scheme"
 
         # Verify array_union was called
+        from db.redis_config import SCHEMES_PREFIX
+
         mock_array_union.assert_called_once_with(
-            "schemes:", "test-scheme-id", "beneficiaries", ["test-citizen-id"]
+            SCHEMES_PREFIX, "test-scheme-id", "beneficiaries", ["test-citizen-id"]
         )
