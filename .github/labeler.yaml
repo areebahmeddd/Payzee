@@ -45,6 +45,7 @@
 '🔧 CI/CD Pipeline':
   - changed-files:
     - any-glob-to-any-file: '.github/workflows/**/*'
+    - any-glob-to-any-file: '.github/actions/**/*'
 
 '📋 GitHub Config':
   - changed-files:
@@ -80,7 +81,7 @@
     - any-glob-to-any-file: 'tests/**/*.py'
     - any-glob-to-any-file: 'tests/conftest.py'
 
-'🔧 Development Tools':
+'🪛 Development Tools':
   - changed-files:
     - any-glob-to-any-file: '.pre-commit-config.yaml'
     - any-glob-to-any-file: '.editorconfig'
