@@ -68,4 +68,5 @@ class Vendor:
         vendor.account_info = data["account_info"]
         vendor.business_info = data["business_info"]
         vendor.wallet_info = data["wallet_info"]
+
         return vendor

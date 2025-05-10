@@ -49,4 +49,5 @@ class Government:
         )
         govt.account_info = data["account_info"]
         govt.wallet_info = data["wallet_info"]
+
         return govt

@@ -55,4 +55,5 @@ class Scheme:
         scheme.beneficiaries = data["beneficiaries"]
         scheme.created_at = data["created_at"]
         scheme.updated_at = data["updated_at"]
+
         return scheme

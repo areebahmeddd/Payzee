@@ -48,4 +48,5 @@ class Transaction:
         transaction.id = data["id"]
         transaction.status = data["status"]
         transaction.timestamp = data["timestamp"]
+
         return transaction
