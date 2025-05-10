@@ -15,6 +15,7 @@ from db import (
     save_transaction,
     query_transactions_by_field,
     array_union,
+    get_all_schemes,
 )
 from db.redis_config import SCHEMES_PREFIX, CITIZENS_PREFIX, VENDORS_PREFIX
 
@@ -213,24 +214,191 @@ async def get_eligible_schemes(citizen_id: str):
         raise HTTPException(status_code=404, detail="Citizen not found")
 
     # Get all active schemes
-    active_schemes = query_transactions_by_field("status", "active")
+    active_schemes = get_all_schemes()
+
+    # Filter for active schemes
+    active_schemes = [
+        scheme for scheme in active_schemes if scheme.get("status") == "active"
+    ]
 
     # Filter schemes based on eligibility criteria
     eligible_schemes = []
     for scheme in active_schemes:
         # Check if user is already a beneficiary
-        if "beneficiaries" in scheme and citizen_id in scheme["beneficiaries"]:
-            scheme["already_enrolled"] = True
-            eligible_schemes.append(scheme)
-            continue
-
-        # Basic eligibility check
-        eligible = (
-            True  # TODO: Implement actual eligibility checks based on scheme criteria
+        already_enrolled = (
+            "beneficiaries" in scheme and citizen_id in scheme["beneficiaries"]
         )
-        if eligible:
-            scheme["already_enrolled"] = False
-            eligible_schemes.append(scheme)
+
+        # Get eligibility criteria from the scheme
+        eligibility_criteria = scheme.get("eligibility_criteria", {})
+
+        # Check each eligibility criterion against citizen's personal info
+        eligible = True
+        eligibility_results = {}
+
+        # Personal info checks
+        personal_info = citizen.get("personal_info", {})
+
+        # Check occupation
+        if "occupation" in eligibility_criteria:
+            required_occupation = eligibility_criteria["occupation"]
+            citizen_occupation = personal_info.get("occupation", "")
+
+            # If "any" is specified or exact match
+            if (
+                required_occupation != "any"
+                and required_occupation != citizen_occupation
+            ):
+                eligible = False
+                eligibility_results["occupation"] = {
+                    "required": required_occupation,
+                    "actual": citizen_occupation,
+                    "passed": False,
+                }
+            else:
+                eligibility_results["occupation"] = {
+                    "required": required_occupation,
+                    "actual": citizen_occupation,
+                    "passed": True,
+                }
+
+        # Check gender
+        if "gender" in eligibility_criteria:
+            required_gender = eligibility_criteria["gender"]
+            citizen_gender = personal_info.get("gender", "")
+
+            # If "any" is specified or exact match
+            if required_gender != "any" and required_gender != citizen_gender:
+                eligible = False
+                eligibility_results["gender"] = {
+                    "required": required_gender,
+                    "actual": citizen_gender,
+                    "passed": False,
+                }
+            else:
+                eligibility_results["gender"] = {
+                    "required": required_gender,
+                    "actual": citizen_gender,
+                    "passed": True,
+                }
+
+        # Check caste
+        if "caste" in eligibility_criteria:
+            required_caste = eligibility_criteria["caste"]
+            citizen_caste = personal_info.get("caste", "")
+
+            # If "all" is specified or exact match
+            if required_caste != "all" and required_caste != citizen_caste:
+                eligible = False
+                eligibility_results["caste"] = {
+                    "required": required_caste,
+                    "actual": citizen_caste,
+                    "passed": False,
+                }
+            else:
+                eligibility_results["caste"] = {
+                    "required": required_caste,
+                    "actual": citizen_caste,
+                    "passed": True,
+                }
+
+        # Check annual income
+        if "annual_income" in eligibility_criteria:
+            max_annual_income = eligibility_criteria["annual_income"]
+            citizen_annual_income = personal_info.get("annual_income", float("inf"))
+
+            if citizen_annual_income > max_annual_income:
+                eligible = False
+                eligibility_results["annual_income"] = {
+                    "required": f"<= {max_annual_income}",
+                    "actual": citizen_annual_income,
+                    "passed": False,
+                }
+            else:
+                eligibility_results["annual_income"] = {
+                    "required": f"<= {max_annual_income}",
+                    "actual": citizen_annual_income,
+                    "passed": True,
+                }
+
+        # Check age if min_age and max_age are specified
+        if "min_age" in eligibility_criteria or "max_age" in eligibility_criteria:
+            import datetime
+            from dateutil import parser
+
+            dob_str = personal_info.get("dob", "")
+            if dob_str:
+                try:
+                    # Parse DOB string (format might be different, adjust as needed)
+                    dob = parser.parse(
+                        dob_str, dayfirst=True
+                    )  # assuming format like "15-05-1990"
+                    today = datetime.datetime.now()
+                    age = (
+                        today.year
+                        - dob.year
+                        - ((today.month, today.day) < (dob.month, dob.day))
+                    )
+
+                    min_age = eligibility_criteria.get("min_age", 0)
+                    max_age = eligibility_criteria.get("max_age", float("inf"))
+
+                    if age < min_age or age > max_age:
+                        eligible = False
+                        eligibility_results["age"] = {
+                            "required": f"{min_age}-{max_age} years",
+                            "actual": age,
+                            "passed": False,
+                        }
+                    else:
+                        eligibility_results["age"] = {
+                            "required": f"{min_age}-{max_age} years",
+                            "actual": age,
+                            "passed": True,
+                        }
+                except Exception as e:
+                    # Handle date parsing errors
+                    eligibility_results["age"] = {
+                        "error": f"Could not determine age: {str(e)}",
+                        "passed": False,
+                    }
+                    eligible = False
+
+        # Check location (state, district, city) if specified
+        address = personal_info.get("address", "")
+
+        if "state" in eligibility_criteria:
+            required_state = eligibility_criteria["state"]
+            if required_state != "all" and required_state not in address:
+                eligible = False
+                eligibility_results["state"] = {
+                    "required": required_state,
+                    "actual": address,
+                    "passed": False,
+                }
+            else:
+                eligibility_results["state"] = {
+                    "required": required_state,
+                    "actual": address,
+                    "passed": True,
+                }
+
+        # Create result object with all eligibility details
+        scheme_result = {
+            "id": scheme["id"],
+            "name": scheme["name"],
+            "description": scheme["description"],
+            "amount": scheme["amount"],
+            "govt_id": scheme["govt_id"],
+            "eligibility_criteria": scheme["eligibility_criteria"],
+            "eligibility_check": eligibility_results,
+            "eligible": eligible,
+            "already_enrolled": already_enrolled,
+        }
+
+        # Add to eligible schemes list if already enrolled or eligible
+        if already_enrolled or eligible:
+            eligible_schemes.append(scheme_result)
 
     return JSONResponse(content=eligible_schemes)
 
@@ -238,22 +406,128 @@ async def get_eligible_schemes(citizen_id: str):
 # Enroll in a scheme
 @router.post("/{citizen_id}/enroll-scheme/{scheme_id}", response_model=MessageResponse)
 async def enroll_scheme(citizen_id: str, scheme_id: str):
-    # Check if citizen exists
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
-    # Check if scheme exists
     scheme = get_scheme(scheme_id)
     if not scheme:
         raise HTTPException(status_code=404, detail="Scheme not found")
 
-    # Check if already enrolled
     if "beneficiaries" in scheme and citizen_id in scheme["beneficiaries"]:
         raise HTTPException(status_code=409, detail="Already enrolled in this scheme")
 
+    # Check eligibility before enrolling
+    eligibility_criteria = scheme.get("eligibility_criteria", {})
+    personal_info = citizen.get("personal_info", {})
+
+    # Check if the citizen is eligible based on criteria
+    eligible = True
+    failure_reasons = []
+
+    # Check occupation
+    if "occupation" in eligibility_criteria:
+        required_occupation = eligibility_criteria["occupation"]
+        citizen_occupation = personal_info.get("occupation", "")
+        if required_occupation != "any" and required_occupation != citizen_occupation:
+            eligible = False
+            failure_reasons.append(
+                f"Occupation: required {required_occupation}, but you have {citizen_occupation}"
+            )
+
+    # Check gender
+    if "gender" in eligibility_criteria:
+        required_gender = eligibility_criteria["gender"]
+        citizen_gender = personal_info.get("gender", "")
+        if required_gender != "any" and required_gender != citizen_gender:
+            eligible = False
+            failure_reasons.append(
+                f"Gender: required {required_gender}, but you have {citizen_gender}"
+            )
+
+    # Check caste
+    if "caste" in eligibility_criteria:
+        required_caste = eligibility_criteria["caste"]
+        citizen_caste = personal_info.get("caste", "")
+        if required_caste != "all" and required_caste != citizen_caste:
+            eligible = False
+            failure_reasons.append(
+                f"Caste: required {required_caste}, but you have {citizen_caste}"
+            )
+
+    # Check annual income
+    if "annual_income" in eligibility_criteria:
+        max_annual_income = eligibility_criteria["annual_income"]
+        citizen_annual_income = personal_info.get("annual_income", float("inf"))
+        if citizen_annual_income > max_annual_income:
+            eligible = False
+            failure_reasons.append(
+                f"Annual income: required <= {max_annual_income}, but you have {citizen_annual_income}"
+            )
+
+    # Check age if min_age and max_age are specified
+    if "min_age" in eligibility_criteria or "max_age" in eligibility_criteria:
+        import datetime
+        from dateutil import parser
+
+        dob_str = personal_info.get("dob", "")
+        if dob_str:
+            try:
+                # Parse DOB string (format might be different, adjust as needed)
+                dob = parser.parse(
+                    dob_str, dayfirst=True
+                )  # assuming format like "15-05-1990"
+                today = datetime.datetime.now()
+                age = (
+                    today.year
+                    - dob.year
+                    - ((today.month, today.day) < (dob.month, dob.day))
+                )
+
+                min_age = eligibility_criteria.get("min_age", 0)
+                max_age = eligibility_criteria.get("max_age", float("inf"))
+
+                if age < min_age or age > max_age:
+                    eligible = False
+                    failure_reasons.append(
+                        f"Age: required {min_age}-{max_age} years, but you are {age} years old"
+                    )
+            except Exception as e:
+                eligible = False
+                failure_reasons.append(f"Could not determine age: {str(e)}")
+
+    # Check location (state)
+    if "state" in eligibility_criteria:
+        required_state = eligibility_criteria["state"]
+        address = personal_info.get("address", "")
+        if required_state != "all" and required_state not in address:
+            eligible = False
+            failure_reasons.append(
+                f"State: required {required_state}, but your address is {address}"
+            )
+
+    # Only allow enrollment if eligible
+    if not eligible:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "message": "You are not eligible for this scheme",
+                "reasons": failure_reasons,
+            },
+        )
+
     # Update scheme to add citizen as a beneficiary
     array_union(SCHEMES_PREFIX, scheme_id, "beneficiaries", [citizen_id])
+
+    # Update citizen's scheme_info to include this scheme
+    citizen_data = get_citizen(citizen_id)
+    if "scheme_info" not in citizen_data:
+        citizen_data["scheme_info"] = []
+
+    if scheme_id not in citizen_data["scheme_info"]:
+        citizen_data["scheme_info"].append(scheme_id)
+        update_citizen(citizen_id, {"scheme_info": citizen_data["scheme_info"]})
+
     return JSONResponse(content={"message": "Successfully enrolled in scheme"})
 
 

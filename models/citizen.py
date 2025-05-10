@@ -47,11 +47,14 @@ class Citizen:
             "personal_wallet": {"balance": 0, "transactions": []},
         }
 
+        self.scheme_info = []
+
     def to_dict(self):
         return {
             "account_info": self.account_info,
             "personal_info": self.personal_info,
             "wallet_info": self.wallet_info,
+            "scheme_info": self.scheme_info,
         }
 
     @classmethod
@@ -74,4 +77,6 @@ class Citizen:
         citizen.account_info = data["account_info"]
         citizen.personal_info = data["personal_info"]
         citizen.wallet_info = data["wallet_info"]
+        citizen.scheme_info = data.get("scheme_info", [])
+
         return citizen

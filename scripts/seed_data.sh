@@ -150,7 +150,7 @@ citizens = [
         "occupation": "farmer",
         "caste": "OBC",
         "dob": "22-08-1985",
-        "annual_income": 300000
+        "annual_income": 80000
     },
     {
         "name": "Alfiya Fatima",
@@ -166,6 +166,36 @@ citizens = [
         "caste": "SC",
         "dob": "10-12-1998",
         "annual_income": 150000
+    },
+    {
+        "name": "Rajni Singh",
+        "email": "rajni@example.com",
+        "password": "admin@123",
+        "phone": "+91 9988776655",
+        "address": "22, Andheri East, Mumbai, Maharashtra, 400069",
+        "id_type": "Aadhaar",
+        "id_number": "456789012345",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "female",
+        "occupation": "farmer",
+        "caste": "OBC",
+        "dob": "03-06-1982",
+        "annual_income": 75000
+    },
+    {
+        "name": "Manoj Kumar",
+        "email": "manoj@example.com",
+        "password": "admin@123",
+        "phone": "+91 9876543211",
+        "address": "45, Jayanagar, Bengaluru, Karnataka, 560041",
+        "id_type": "Aadhaar",
+        "id_number": "567890123456",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "male",
+        "occupation": "student",
+        "caste": "SC",
+        "dob": "25-09-1999",
+        "annual_income": 120000
     }
 ]
 
@@ -362,10 +392,8 @@ schemes = [
             "occupation": "farmer",
             "min_age": 18,
             "max_age": 65,
-            "gender": "male",
+            "gender": "any",
             "state": "Maharashtra",
-            "district": "Mumbai",
-            "city": "Mumbai",
             "caste": "OBC",
             "annual_income": 100000
         },
@@ -381,10 +409,8 @@ schemes = [
             "occupation": "student",
             "min_age": 17,
             "max_age": 25,
-            "gender": "female",
+            "gender": "any",
             "state": "Karnataka",
-            "district": "Bangalore Rural",
-            "city": "Doddaballapur",
             "caste": "SC",
             "annual_income": 300000
         },
@@ -402,12 +428,44 @@ schemes = [
             "max_age": 100,
             "gender": "any",
             "state": "Delhi",
-            "district": "all",
-            "city": "all",
             "caste": "all",
             "annual_income": 250000
         },
         "tags": ["health", "insurance", "poverty"]
+    },
+    {
+        "name": "Maharashtra Women Farmer Support",
+        "description": "Special support scheme for women farmers in Maharashtra",
+        "govt_id": govt_ids[0],
+        "amount": 10000,
+        "status": "active",
+        "eligibility_criteria": {
+            "occupation": "farmer",
+            "min_age": 18,
+            "max_age": 65,
+            "gender": "female",
+            "state": "Maharashtra",
+            "caste": "all",
+            "annual_income": 150000
+        },
+        "tags": ["agriculture", "women-empowerment", "rural-development"]
+    },
+    {
+        "name": "Tech Talent Scholarship",
+        "description": "Financial aid for software engineers and tech professionals",
+        "govt_id": govt_ids[1],
+        "amount": 25000,
+        "status": "active",
+        "eligibility_criteria": {
+            "occupation": "software engineer",
+            "min_age": 21,
+            "max_age": 40,
+            "gender": "any",
+            "state": "all",
+            "caste": "all",
+            "annual_income": 1500000
+        },
+        "tags": ["technology", "education", "career-development"]
     }
 ]
 
@@ -416,43 +474,50 @@ for scheme_data in schemes:
     scheme_id = str(uuid.uuid4())
     scheme_ids.append(scheme_id)
 
-    # Select eligible beneficiaries for this scheme based on location and other criteria
     eligible_beneficiaries = []
 
-    # Assign beneficiaries based on scheme criteria
     if scheme_data["name"] == "PM Kisan Samman Nidhi":
-        # For Maharashtra-based farmer scheme
         for cid in citizen_ids:
             citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            # Check if address contains Maharashtra and occupation is farmer
             if ("Maharashtra" in citizen["personal_info"]["address"] and
                 citizen["personal_info"]["occupation"] == "farmer" and
                 citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"] and
                 citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"]):
                 eligible_beneficiaries.append(cid)
 
+                if "scheme_info" not in citizen:
+                    citizen["scheme_info"] = []
+                citizen["scheme_info"].append(scheme_id)
+                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
+
     elif scheme_data["name"] == "Vidyarthi Shiksha Yojana":
-        # For Karnataka-based education scheme
         for cid in citizen_ids:
             citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            # Check if address contains Karnataka, occupation is student, and gender is female
             if ("Karnataka" in citizen["personal_info"]["address"] and
                 citizen["personal_info"]["occupation"] == "student" and
-                citizen["account_info"]["gender"] == "female" and
+                citizen["personal_info"]["gender"] == "female" and
                 citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"] and
                 citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
                 eligible_beneficiaries.append(cid)
 
+                if "scheme_info" not in citizen:
+                    citizen["scheme_info"] = []
+                citizen["scheme_info"].append(scheme_id)
+                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
+
     elif scheme_data["name"] == "Delhi Swasthya Bima Yojana":
-        # For Delhi health scheme
         for cid in citizen_ids:
             citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            # Check if address contains Delhi and income is below threshold
             if ("Delhi" in citizen["personal_info"]["address"] and
                 citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
                 eligible_beneficiaries.append(cid)
 
-    # Create the scheme with beneficiaries
+                if "scheme_info" not in citizen:
+                    citizen["scheme_info"] = []
+                citizen["scheme_info"].append(scheme_id)
+                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
+                eligible_beneficiaries.append(cid)
+
     scheme = {
         "id": scheme_id,
         "name": scheme_data["name"],
@@ -490,10 +555,8 @@ for scheme_id in scheme_ids:
     govt_data = redis_client.get(f"{GOVERNMENTS_PREFIX}{scheme['govt_id']}")
     govt = deserialize_from_db(govt_data)
 
-    # Use the beneficiaries already assigned to schemes
     beneficiaries = scheme["beneficiaries"]
     if not beneficiaries:
-        # Fallback if no beneficiaries were found
         beneficiaries = random.sample(citizen_ids, min(random.randint(1, 2), len(citizen_ids)))
 
     for citizen_id in beneficiaries:
