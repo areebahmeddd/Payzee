@@ -42,6 +42,7 @@ check_services() {
         echo "Starting Payzee containers..."
 
         cd ..
+        export COMPOSE_BAKE=true
         docker compose up -d
 
         if [ $? -ne 0 ]; then
@@ -128,8 +129,7 @@ citizens = [
         "phone": "+91 9876543210",
         "address": "42, Linking Road, Bandra West, Mumbai, Maharashtra, 400050",
         "id_type": "Aadhaar",
-        "id_number": "123456789012",
-        "location": {"latitude": 19.0596, "longitude": 72.8295}  # Mumbai coordinates
+        "id_number": "123456789012"
     },
     {
         "name": "Shivansh Karan",
@@ -138,8 +138,7 @@ citizens = [
         "phone": "+91 8765432109",
         "address": "15, MG Road, Bengaluru, Karnataka, 560001",
         "id_type": "Aadhaar",
-        "id_number": "234567890123",
-        "location": {"latitude": 12.9716, "longitude": 77.5946}  # Bengaluru coordinates
+        "id_number": "234567890123"
     },
     {
         "name": "Alfiya Fatima",
@@ -148,8 +147,7 @@ citizens = [
         "phone": "+91 7654321098",
         "address": "78, Civil Lines, Delhi, 110054",
         "id_type": "Aadhaar",
-        "id_number": "345678901234",
-        "location": {"latitude": 28.7041, "longitude": 77.1025}  # Delhi coordinates
+        "id_number": "345678901234"
     }
 ]
 
@@ -174,8 +172,7 @@ for citizen_data in citizens:
             "phone": citizen_data["phone"],
             "address": citizen_data["address"],
             "id_type": citizen_data["id_type"],
-            "id_number": citizen_data["id_number"],
-            "location": citizen_data.get("location", {"latitude": random.uniform(8.0, 37.0), "longitude": random.uniform(68.0, 97.0)})
+            "id_number": citizen_data["id_number"]
         },
         "wallet_info": {
             "govt_wallet": {"balance": random.randint(500, 5000), "transactions": []},
@@ -198,8 +195,7 @@ vendors = [
         "phone": "+91 9988776655",
         "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
         "business_id": "GSTIN22AAAAA1111Z",
-        "license_type": "private",
-        "location": {"latitude": 28.5698, "longitude": 77.2421}  # Delhi, Lajpat Nagar coordinates
+        "license_type": "private"
     },
     {
         "name": "Priya Sharma",
@@ -209,8 +205,7 @@ vendors = [
         "phone": "+91 8877665544",
         "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
         "business_id": "GSTIN09BBBBB2222Y",
-        "license_type": "public",
-        "location": {"latitude": 28.5705, "longitude": 77.3160}  # Noida coordinates
+        "license_type": "public"
     },
     {
         "name": "Abdul Khan",
@@ -220,8 +215,7 @@ vendors = [
         "phone": "+91 7766554433",
         "address": "10, Park Street, Kolkata, West Bengal, 700016",
         "business_id": "GSTIN19CCCCC3333X",
-        "license_type": "government",
-        "location": {"latitude": 22.5726, "longitude": 88.3639}  # Kolkata coordinates
+        "license_type": "government"
     }
 ]
 
@@ -247,8 +241,7 @@ for vendor_data in vendors:
             "phone": vendor_data["phone"],
             "address": vendor_data["address"],
             "business_id": vendor_data["business_id"],
-            "license_type": vendor_data["license_type"],
-            "location": vendor_data.get("location", {"latitude": random.uniform(8.0, 37.0), "longitude": random.uniform(68.0, 97.0)})
+            "license_type": vendor_data["license_type"]
         },
         "wallet_info": {
             "balance": random.randint(5000, 20000),
