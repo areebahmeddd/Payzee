@@ -27,7 +27,7 @@ class VendorSignup(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     business_name: str
-    business_id: Optional[str] = None
+    business_id: str
     license_type: str
     location: Optional[Location] = None
 

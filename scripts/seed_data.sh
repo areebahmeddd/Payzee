@@ -128,7 +128,8 @@ citizens = [
         "phone": "+91 9876543210",
         "address": "42, Linking Road, Bandra West, Mumbai, Maharashtra, 400050",
         "id_type": "Aadhaar",
-        "id_number": "123456789012"
+        "id_number": "123456789012",
+        "location": {"latitude": 19.0596, "longitude": 72.8295}  # Mumbai coordinates
     },
     {
         "name": "Shivansh Karan",
@@ -137,7 +138,8 @@ citizens = [
         "phone": "+91 8765432109",
         "address": "15, MG Road, Bengaluru, Karnataka, 560001",
         "id_type": "Aadhaar",
-        "id_number": "234567890123"
+        "id_number": "234567890123",
+        "location": {"latitude": 12.9716, "longitude": 77.5946}  # Bengaluru coordinates
     },
     {
         "name": "Alfiya Fatima",
@@ -146,7 +148,8 @@ citizens = [
         "phone": "+91 7654321098",
         "address": "78, Civil Lines, Delhi, 110054",
         "id_type": "Aadhaar",
-        "id_number": "345678901234"
+        "id_number": "345678901234",
+        "location": {"latitude": 28.7041, "longitude": 77.1025}  # Delhi coordinates
     }
 ]
 
@@ -164,13 +167,15 @@ for citizen_data in citizens:
             "email": citizen_data["email"],
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
+            "updated_at": datetime.now().isoformat(),
+            "user_type": "citizen"
         },
         "personal_info": {
             "phone": citizen_data["phone"],
             "address": citizen_data["address"],
             "id_type": citizen_data["id_type"],
-            "id_number": citizen_data["id_number"]
+            "id_number": citizen_data["id_number"],
+            "location": citizen_data.get("location", {"latitude": random.uniform(8.0, 37.0), "longitude": random.uniform(68.0, 97.0)})
         },
         "wallet_info": {
             "govt_wallet": {"balance": random.randint(500, 5000), "transactions": []},
@@ -192,8 +197,9 @@ vendors = [
         "business_name": "Malhotra Grocery Mart",
         "phone": "+91 9988776655",
         "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
-        "business_id": "GSTIN22AAAAA1111Z",
-        "license_type": "private"
+        "business_id": "22AAAAA1111Z1Z5",
+        "license_type": "private",
+        "location": {"latitude": 28.5698, "longitude": 77.2421}  # Delhi, Lajpat Nagar coordinates
     },
     {
         "name": "Priya Sharma",
@@ -202,8 +208,9 @@ vendors = [
         "business_name": "MedPlus Pharmacy",
         "phone": "+91 8877665544",
         "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
-        "business_id": "GSTIN09BBBBB2222Y",
-        "license_type": "public"
+        "business_id": "09BBBBB2222Y1Y4",
+        "license_type": "public",
+        "location": {"latitude": 28.5705, "longitude": 77.3160}  # Noida coordinates
     },
     {
         "name": "Abdul Khan",
@@ -212,8 +219,9 @@ vendors = [
         "business_name": "Khan Kirana Store",
         "phone": "+91 7766554433",
         "address": "10, Park Street, Kolkata, West Bengal, 700016",
-        "business_id": "GSTIN19CCCCC3333X",
-        "license_type": "government"
+        "business_id": "19CCCCC3333X1X3",
+        "license_type": "government",
+        "location": {"latitude": 22.5726, "longitude": 88.3639}  # Kolkata coordinates
     }
 ]
 
@@ -231,14 +239,16 @@ for vendor_data in vendors:
             "email": vendor_data["email"],
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
+            "updated_at": datetime.now().isoformat(),
+            "user_type": "vendor"
         },
         "business_info": {
             "business_name": vendor_data["business_name"],
             "phone": vendor_data["phone"],
             "address": vendor_data["address"],
             "business_id": vendor_data["business_id"],
-            "license_type": vendor_data["license_type"]
+            "license_type": vendor_data["license_type"],
+            "location": vendor_data.get("location", {"latitude": random.uniform(8.0, 37.0), "longitude": random.uniform(68.0, 97.0)})
         },
         "wallet_info": {
             "balance": random.randint(5000, 20000),
@@ -293,7 +303,8 @@ for govt_data in governments:
             "email": govt_data["email"],
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
+            "updated_at": datetime.now().isoformat(),
+            "user_type": "government"
         },
         "department_info": {
             "department": govt_data["department"],
@@ -319,7 +330,17 @@ schemes = [
         "description": "Direct income support of ₹6,000 per year to eligible farmer families",
         "govt_id": govt_ids[0],
         "amount": 6000,
-        "eligibility_criteria": {"occupation": "farmer", "land_holding": "small_marginal"},
+        "status": "active",
+        "eligibility_criteria": {
+            "occupation": "farmer",
+            "land_holding": "small_marginal",
+            "min_age": 18,
+            "gender": "male",
+            "state": "Maharashtra",
+            "district": "Mumbai",
+            "city": "Mumbai",
+            "caste": "OBC"
+        },
         "tags": ["agriculture", "farmer-welfare", "income-support"]
     },
     {
@@ -327,7 +348,19 @@ schemes = [
         "description": "Scholarship for higher education students from rural Karnataka",
         "govt_id": govt_ids[1],
         "amount": 15000,
-        "eligibility_criteria": {"education": "higher", "residence": "rural_karnataka", "income_below": 300000},
+        "status": "active",
+        "eligibility_criteria": {
+            "education": "higher",
+            "residence": "rural_karnataka",
+            "income_below": 300000,
+            "min_age": 17,
+            "max_age": 25,
+            "gender": "female",
+            "state": "Karnataka",
+            "district": "Bangalore Rural",
+            "city": "Doddaballapur",
+            "caste": "SC"
+        },
         "tags": ["education", "scholarship", "rural"]
     },
     {
@@ -335,7 +368,17 @@ schemes = [
         "description": "Health insurance coverage for Delhi residents below poverty line",
         "govt_id": govt_ids[2],
         "amount": 5000,
-        "eligibility_criteria": {"residence": "delhi", "income_below": 250000},
+        "status": "active",
+        "eligibility_criteria": {
+            "residence": "delhi",
+            "income_below": 250000,
+            "min_age": 0,
+            "gender": "any",
+            "state": "all",
+            "district": "all",
+            "city": "all",
+            "caste": "all"
+        },
         "tags": ["health", "insurance", "poverty"]
     }
 ]
@@ -355,7 +398,7 @@ for scheme_data in schemes:
         "tags": scheme_data["tags"],
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat(),
-        "status": "active",
+        "status": scheme_data.get("status", "active"),
         "beneficiaries": []
     }
 
@@ -493,20 +536,20 @@ main() {
     echo ""
     echo "Test accounts created successfully!"
     echo "==================================="
-    echo "Citizens:"
-    echo "  - Email: areeb@example.com / Password: admin@123"
-    echo "  - Email: shivansh@example.com / Password: admisn@123"
-    echo "  - Email: alfiya@example.com / Password: admin@123"
+    echo "Citizens (login using ID Number):"
+    echo "  - Aadhar ID Number: 123456789012 / Password: admin@123 (Areeb Ahmed)"
+    echo "  - Aadhar ID Number: 234567890123 / Password: admin@123 (Shivansh Karan)"
+    echo "  - Aadhar ID Number: 345678901234 / Password: admin@123 (Alfiya Fatima)"
     echo ""
-    echo "Vendors:"
-    echo "  - Email: grocerymart@example.com / Password: admin@123"
-    echo "  - Email: medplus@example.com / Password: admin@123"
-    echo "  - Email: kirana@example.com / Password: admin@123"
+    echo "Vendors (login using Business ID):"
+    echo "  - Business ID: GSTIN22AAAAA1111Z / Password: admin@123 (Malhotra Grocery Mart)"
+    echo "  - Business ID: GSTIN09BBBBB2222Y / Password: admin@123 (MedPlus Pharmacy)"
+    echo "  - Business ID: GSTIN19CCCCC3333X / Password: admin@123 (Khan Kirana Store)"
     echo ""
-    echo "Government Entities:"
-    echo "  - Email: social.justice@gov.in / Password: admin@123"
-    echo "  - Email: rural.dev@karnataka.gov.in / Password: admin@123"
-    echo "  - Email: dsw@delhi.gov.in / Password: admin@123"
+    echo "Government Entities (login using Govt ID):"
+    echo "  - Govt ID: DOPT0001 / Password: admin@123 (Ministry of Social Justice)"
+    echo "  - Govt ID: KARD0002 / Password: admin@123 (Karnataka Rural Development)"
+    echo "  - Govt ID: DELSW003 / Password: admin@123 (Delhi Social Welfare Department)"
 }
 
 main
