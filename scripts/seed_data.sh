@@ -129,7 +129,13 @@ citizens = [
         "phone": "+91 9876543210",
         "address": "42, Linking Road, Bandra West, Mumbai, Maharashtra, 400050",
         "id_type": "Aadhaar",
-        "id_number": "123456789012"
+        "id_number": "123456789012",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "male",
+        "occupation": "software engineer",
+        "caste": "General",
+        "dob": "15-05-1990",
+        "annual_income": 1200000
     },
     {
         "name": "Shivansh Karan",
@@ -138,7 +144,13 @@ citizens = [
         "phone": "+91 8765432109",
         "address": "15, MG Road, Bengaluru, Karnataka, 560001",
         "id_type": "Aadhaar",
-        "id_number": "234567890123"
+        "id_number": "234567890123",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "male",
+        "occupation": "farmer",
+        "caste": "OBC",
+        "dob": "22-08-1985",
+        "annual_income": 300000
     },
     {
         "name": "Alfiya Fatima",
@@ -147,7 +159,13 @@ citizens = [
         "phone": "+91 7654321098",
         "address": "78, Civil Lines, Delhi, 110054",
         "id_type": "Aadhaar",
-        "id_number": "345678901234"
+        "id_number": "345678901234",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "female",
+        "occupation": "student",
+        "caste": "SC",
+        "dob": "10-12-1998",
+        "annual_income": 150000
     }
 ]
 
@@ -166,13 +184,19 @@ for citizen_data in citizens:
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
-            "user_type": "citizen"
+            "user_type": "citizen",
+            "image_url": citizen_data["image_url"]
         },
         "personal_info": {
             "phone": citizen_data["phone"],
-            "address": citizen_data["address"],
             "id_type": citizen_data["id_type"],
-            "id_number": citizen_data["id_number"]
+            "id_number": citizen_data["id_number"],
+            "address": citizen_data["address"],
+            "dob": citizen_data["dob"],
+            "gender": citizen_data["gender"],
+            "occupation": citizen_data["occupation"],
+            "caste": citizen_data["caste"],
+            "annual_income": citizen_data["annual_income"]
         },
         "wallet_info": {
             "govt_wallet": {"balance": random.randint(500, 5000), "transactions": []},
@@ -195,7 +219,10 @@ vendors = [
         "phone": "+91 9988776655",
         "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
         "business_id": "GSTIN22AAAAA1111Z",
-        "license_type": "private"
+        "license_type": "private",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "male",
+        "occupation": "retail business"
     },
     {
         "name": "Priya Sharma",
@@ -205,7 +232,10 @@ vendors = [
         "phone": "+91 8877665544",
         "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
         "business_id": "GSTIN09BBBBB2222Y",
-        "license_type": "public"
+        "license_type": "public",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "female",
+        "occupation": "healthcare"
     },
     {
         "name": "Abdul Khan",
@@ -215,7 +245,10 @@ vendors = [
         "phone": "+91 7766554433",
         "address": "10, Park Street, Kolkata, West Bengal, 700016",
         "business_id": "GSTIN19CCCCC3333X",
-        "license_type": "government"
+        "license_type": "government",
+        "image_url": "https://images.pexels.com/photos/756856/pexels-photo-756856.jpeg",
+        "gender": "male",
+        "occupation": "retail business"
     }
 ]
 
@@ -234,14 +267,17 @@ for vendor_data in vendors:
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
-            "user_type": "vendor"
+            "user_type": "vendor",
+            "image_url": vendor_data["image_url"],
+            "gender": vendor_data["gender"]
         },
         "business_info": {
             "business_name": vendor_data["business_name"],
-            "phone": vendor_data["phone"],
-            "address": vendor_data["address"],
             "business_id": vendor_data["business_id"],
-            "license_type": vendor_data["license_type"]
+            "license_type": vendor_data["license_type"],
+            "occupation": vendor_data["occupation"],
+            "phone": vendor_data["phone"],
+            "address": vendor_data["address"]
         },
         "wallet_info": {
             "balance": random.randint(5000, 20000),
@@ -297,9 +333,7 @@ for govt_data in governments:
             "password": hashed_pw,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
-            "user_type": "government"
-        },
-        "department_info": {
+            "user_type": "government",
             "department": govt_data["department"],
             "jurisdiction": govt_data["jurisdiction"],
             "govt_id": govt_data["govt_id"]
@@ -382,6 +416,43 @@ for scheme_data in schemes:
     scheme_id = str(uuid.uuid4())
     scheme_ids.append(scheme_id)
 
+    # Select eligible beneficiaries for this scheme based on location and other criteria
+    eligible_beneficiaries = []
+
+    # Assign beneficiaries based on scheme criteria
+    if scheme_data["name"] == "PM Kisan Samman Nidhi":
+        # For Maharashtra-based farmer scheme
+        for cid in citizen_ids:
+            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
+            # Check if address contains Maharashtra and occupation is farmer
+            if ("Maharashtra" in citizen["personal_info"]["address"] and
+                citizen["personal_info"]["occupation"] == "farmer" and
+                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"] and
+                citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"]):
+                eligible_beneficiaries.append(cid)
+
+    elif scheme_data["name"] == "Vidyarthi Shiksha Yojana":
+        # For Karnataka-based education scheme
+        for cid in citizen_ids:
+            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
+            # Check if address contains Karnataka, occupation is student, and gender is female
+            if ("Karnataka" in citizen["personal_info"]["address"] and
+                citizen["personal_info"]["occupation"] == "student" and
+                citizen["account_info"]["gender"] == "female" and
+                citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"] and
+                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
+                eligible_beneficiaries.append(cid)
+
+    elif scheme_data["name"] == "Delhi Swasthya Bima Yojana":
+        # For Delhi health scheme
+        for cid in citizen_ids:
+            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
+            # Check if address contains Delhi and income is below threshold
+            if ("Delhi" in citizen["personal_info"]["address"] and
+                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
+                eligible_beneficiaries.append(cid)
+
+    # Create the scheme with beneficiaries
     scheme = {
         "id": scheme_id,
         "name": scheme_data["name"],
@@ -393,7 +464,7 @@ for scheme_data in schemes:
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat(),
         "status": scheme_data.get("status", "active"),
-        "beneficiaries": []
+        "beneficiaries": eligible_beneficiaries
     }
 
     redis_client.set(f"{SCHEMES_PREFIX}{scheme_id}", serialize_for_db(scheme))
@@ -406,7 +477,7 @@ for scheme_data in schemes:
         govt_dict['wallet_info']['schemes'].append(scheme_id)
         redis_client.set(govt_key, serialize_for_db(govt_dict))
 
-    print(f"Added scheme: {scheme_data['name']}")
+    print(f"Added scheme: {scheme_data['name']} with {len(eligible_beneficiaries)} beneficiaries")
 
 print("\nCreating transactions...")
 transactions = []
@@ -419,7 +490,11 @@ for scheme_id in scheme_ids:
     govt_data = redis_client.get(f"{GOVERNMENTS_PREFIX}{scheme['govt_id']}")
     govt = deserialize_from_db(govt_data)
 
-    beneficiaries = random.sample(citizen_ids, random.randint(1, 2))
+    # Use the beneficiaries already assigned to schemes
+    beneficiaries = scheme["beneficiaries"]
+    if not beneficiaries:
+        # Fallback if no beneficiaries were found
+        beneficiaries = random.sample(citizen_ids, min(random.randint(1, 2), len(citizen_ids)))
 
     for citizen_id in beneficiaries:
         if transaction_count >= 5:

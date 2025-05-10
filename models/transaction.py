@@ -4,7 +4,13 @@ from datetime import datetime, timezone
 
 class Transaction:
     def __init__(
-        self, from_id, to_id, amount, tx_type, scheme_id=None, description=None
+        self,
+        from_id,
+        to_id,
+        amount,
+        tx_type,
+        scheme_id=None,
+        description=None,
     ):
         self.id = str(uuid.uuid4())
         self.from_id = from_id  # ID of the sender (govt, citizen, vendor)
@@ -13,8 +19,8 @@ class Transaction:
         self.tx_type = tx_type  # govt_to_citizen, citizen_to_vendor, etc.
         self.scheme_id = scheme_id  # If it's a government disbursement
         self.description = description or "Transaction"
-        self.timestamp = datetime.now(timezone.utc)
         self.status = "completed"  # pending, completed, failed
+        self.timestamp = datetime.now(timezone.utc)
 
     def to_dict(self):
         return {
@@ -25,8 +31,8 @@ class Transaction:
             "tx_type": self.tx_type,
             "scheme_id": self.scheme_id,
             "description": self.description,
-            "timestamp": self.timestamp,
             "status": self.status,
+            "timestamp": self.timestamp,
         }
 
     @classmethod
@@ -40,6 +46,6 @@ class Transaction:
             description=data.get("description"),
         )
         transaction.id = data["id"]
-        transaction.timestamp = data["timestamp"]
         transaction.status = data["status"]
+        transaction.timestamp = data["timestamp"]
         return transaction

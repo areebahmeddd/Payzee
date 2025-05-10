@@ -5,34 +5,44 @@ from typing import Any, Optional, Dict, List
 # Signup models
 class CitizenSignup(BaseModel):
     name: str
-    email: Optional[EmailStr] = None
     password: str
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
     id_type: str = "Aadhaar"
     id_number: str
+    address: Optional[str] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    occupation: Optional[str] = None
+    caste: Optional[str] = None
+    annual_income: Optional[float] = None
+    image_url: Optional[str] = None
 
 
 class VendorSignup(BaseModel):
     name: str
-    email: Optional[EmailStr] = None
     password: str
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
     business_name: str
     business_id: str
     license_type: str
+    address: Optional[str] = None
+    gender: Optional[str] = None
+    occupation: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class GovernmentSignup(BaseModel):
     name: str
-    email: Optional[EmailStr] = None
     password: str
+    email: Optional[EmailStr] = None
     department: str
     jurisdiction: str
     govt_id: str
 
 
+# Login model
 class LoginRequest(BaseModel):
     id_number: str
     password: str
@@ -63,15 +73,15 @@ class SchemeCreate(BaseModel):
                 "amount": 3000.00,
                 "status": "active",
                 "eligibility_criteria": {
-                    "occupation": "any",  # "farmer", "labour", "business", "any"
+                    "occupation": "any",
                     "min_age": 60,
                     "max_age": 80,
-                    "gender": "any",  # "male", "female", "other", "any"
-                    "state": "Karnataka",  # specific state name or "all"
-                    "district": "Bangalore Urban",  # specific district name or "all"
-                    "city": "Bangalore",  # specific city name or "all"
-                    "caste": "General",  # "General", "OBC", "SC", "ST", "all"
-                    "annual_income": 150000,  # annual income limit in INR
+                    "gender": "any",
+                    "state": "Karnataka",
+                    "district": "Bangalore Urban",
+                    "city": "Bangalore",
+                    "caste": "General",
+                    "annual_income": 150000,
                 },
                 "tags": ["pension", "elderly", "senior citizen", "retirement"],
             }
@@ -82,7 +92,6 @@ class SchemeCreate(BaseModel):
 class DisbursementRequest(BaseModel):
     scheme_id: str
     amount_per_user: float
-    # test_mode: bool = False
 
 
 # Response models

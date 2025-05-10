@@ -8,6 +8,7 @@ from models.transaction import Transaction
 from db import (
     get_citizen,
     update_citizen,
+    delete_citizen,
     get_vendor,
     update_vendor,
     get_scheme,
@@ -52,6 +53,18 @@ async def update_citizen_profile(citizen_id: str, data: dict = Body(...)):
 
     update_citizen(citizen_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
+
+
+# Delete citizen profile
+@router.delete("/{citizen_id}", response_model=MessageResponse)
+async def delete_citizen_profile(citizen_id: str):
+    citizen = get_citizen(citizen_id)
+    if not citizen:
+        raise HTTPException(status_code=404, detail="Citizen not found")
+
+    # Delete the citizen
+    delete_citizen(citizen_id)
+    return JSONResponse(content={"message": "Citizen profile deleted successfully"})
 
 
 # Get wallet information
@@ -242,3 +255,17 @@ async def enroll_scheme(citizen_id: str, scheme_id: str):
     # Update scheme to add citizen as a beneficiary
     array_union(SCHEMES_PREFIX, scheme_id, "beneficiaries", [citizen_id])
     return JSONResponse(content={"message": "Successfully enrolled in scheme"})
+
+
+# Delete citizen profile
+@router.delete("/{citizen_id}", response_model=MessageResponse)
+async def delete_profile(citizen_id: str):
+    # Check if citizen exists
+    citizen = get_citizen(citizen_id)
+    if not citizen:
+        raise HTTPException(status_code=404, detail="Citizen not found")
+
+    # Delete the citizen
+    delete_citizen(citizen_id)
+
+    return JSONResponse(content={"message": "Citizen profile deleted successfully"})

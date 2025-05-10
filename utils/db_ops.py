@@ -2,6 +2,7 @@ from db.redis_operations import (
     get_document,
     set_document,
     update_document,
+    delete_document,
     query_by_field,
     get_all_documents,
     array_union,
@@ -36,6 +37,11 @@ def update_citizen(citizen_id, update_data):
     return update_document(CITIZENS_PREFIX, citizen_id, update_data)
 
 
+def delete_citizen(citizen_id):
+    """Delete a citizen document"""
+    return delete_document(CITIZENS_PREFIX, citizen_id, CITIZENS_SET)
+
+
 def query_citizens_by_field(field, value):
     """Query citizens by a field value"""
     return query_by_field(CITIZENS_PREFIX, CITIZENS_SET, field, value)
@@ -62,6 +68,11 @@ def update_vendor(vendor_id, update_data):
     return update_document(VENDORS_PREFIX, vendor_id, update_data)
 
 
+def delete_vendor(vendor_id):
+    """Delete a vendor document"""
+    return delete_document(VENDORS_PREFIX, vendor_id, VENDORS_SET)
+
+
 def query_vendors_by_field(field, value):
     """Query vendors by a field value"""
     return query_by_field(VENDORS_PREFIX, VENDORS_SET, field, value)
@@ -86,6 +97,11 @@ def save_government(govt_id, data):
 def update_government(govt_id, update_data):
     """Update a government document"""
     return update_document(GOVERNMENTS_PREFIX, govt_id, update_data)
+
+
+def delete_government(govt_id):
+    """Delete a government document"""
+    return delete_document(GOVERNMENTS_PREFIX, govt_id, GOVERNMENTS_SET)
 
 
 def query_governments_by_field(field, value):

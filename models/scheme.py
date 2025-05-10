@@ -18,12 +18,12 @@ class Scheme:
         self.description = description
         self.govt_id = govt_id  # Reference to the government that created this scheme
         self.amount = amount
+        self.status = status  # active, inactive, completed
         self.eligibility_criteria = eligibility_criteria or {}
         self.tags = tags or []
         self.beneficiaries = []  # List of citizen IDs who are beneficiaries
         self.created_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
-        self.status = status  # active, inactive, completed
 
     def to_dict(self):
         return {
@@ -32,12 +32,12 @@ class Scheme:
             "description": self.description,
             "govt_id": self.govt_id,
             "amount": self.amount,
+            "status": self.status,
             "eligibility_criteria": self.eligibility_criteria,
             "tags": self.tags,
             "beneficiaries": self.beneficiaries,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "status": self.status,
         }
 
     @classmethod

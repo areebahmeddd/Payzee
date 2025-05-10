@@ -6,6 +6,7 @@ from models.scheme import Scheme
 from db import (
     get_government,
     update_government,
+    delete_government,
     get_citizen,
     update_citizen,
     get_scheme,
@@ -56,6 +57,18 @@ async def update_government_profile(government_id: str, data: dict = Body(...)):
 
     update_government(government_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
+
+
+# Delete government profile
+@router.delete("/{government_id}", response_model=MessageResponse)
+async def delete_government_profile(government_id: str):
+    government = get_government(government_id)
+    if not government:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    # Delete the government
+    delete_government(government_id)
+    return JSONResponse(content={"message": "Government profile deleted successfully"})
 
 
 # Get wallet information

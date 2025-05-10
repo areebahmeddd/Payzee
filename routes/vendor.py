@@ -4,7 +4,13 @@ import base64
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
 from models.api import MessageResponse
-from db import get_vendor, update_vendor, query_transactions_by_field
+from db import (
+    get_vendor,
+    update_vendor,
+    delete_vendor,
+    get_transaction,
+    query_transactions_by_field,
+)
 
 router = APIRouter()
 
@@ -41,6 +47,20 @@ async def update_vendor_profile(vendor_id: str, data: dict = Body(...)):
 
     update_vendor(vendor_id, update_data)
     return JSONResponse(content={"message": "Profile updated successfully"})
+
+
+# Delete vendor profile
+@router.delete("/{vendor_id}", response_model=MessageResponse)
+async def delete_vendor_profile(vendor_id: str):
+    # Check if vendor exists
+    vendor = get_vendor(vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    # Delete the vendor
+    delete_vendor(vendor_id)
+
+    return JSONResponse(content={"message": "Vendor profile deleted successfully"})
 
 
 # Get wallet information
@@ -102,3 +122,25 @@ async def get_transactions(vendor_id: str):
     # Sort by timestamp, newest first
     transactions.sort(key=lambda x: x["timestamp"], reverse=True)
     return JSONResponse(content=transactions)
+
+
+# Get transaction by ID
+@router.get("/{vendor_id}/transaction/{transaction_id}")
+async def get_transaction_by_id(vendor_id: str, transaction_id: str):
+    # Check if vendor exists
+    vendor = get_vendor(vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    # Get the transaction
+    transaction = get_transaction(transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # Verify that the vendor is part of this transaction (security check)
+    if transaction["from_id"] != vendor_id and transaction["to_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403, detail="Transaction not associated with this vendor"
+        )
+
+    return JSONResponse(content=transaction)

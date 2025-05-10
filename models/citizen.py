@@ -6,12 +6,18 @@ class Citizen:
     def __init__(
         self,
         name,
-        email,
         password,
+        email=None,
         phone=None,
-        address=None,
         id_type="Aadhaar",
         id_number=None,
+        address=None,
+        dob=None,
+        gender=None,
+        occupation=None,
+        caste=None,
+        annual_income=None,
+        image_url=None,
     ):
         self.account_info = {
             "id": str(uuid.uuid4()),
@@ -21,13 +27,19 @@ class Citizen:
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
             "user_type": "citizen",
+            "image_url": image_url,
         }
 
         self.personal_info = {
             "phone": phone,
-            "address": address,
             "id_type": id_type,
             "id_number": id_number,
+            "address": address,
+            "dob": dob,
+            "gender": gender,
+            "occupation": occupation,
+            "caste": caste,
+            "annual_income": annual_income,
         }
 
         self.wallet_info = {
@@ -40,17 +52,24 @@ class Citizen:
             "account_info": self.account_info,
             "personal_info": self.personal_info,
             "wallet_info": self.wallet_info,
-        } @ classmethod
+        }
 
+    @classmethod
     def from_dict(cls, data):
         citizen = cls(
             name=data["account_info"]["name"],
-            email=data["account_info"]["email"],
             password=data["account_info"]["password"],
+            email=data["account_info"].get("email"),
             phone=data["personal_info"].get("phone"),
-            address=data["personal_info"].get("address"),
             id_type=data["personal_info"].get("id_type", "Aadhaar"),
             id_number=data["personal_info"].get("id_number"),
+            address=data["personal_info"].get("address"),
+            dob=data["personal_info"].get("dob"),
+            gender=data["personal_info"].get("gender"),
+            occupation=data["personal_info"].get("occupation"),
+            caste=data["personal_info"].get("caste"),
+            annual_income=data["personal_info"].get("annual_income"),
+            image_url=data["account_info"].get("image_url"),
         )
         citizen.account_info = data["account_info"]
         citizen.personal_info = data["personal_info"]

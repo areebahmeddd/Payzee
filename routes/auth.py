@@ -32,12 +32,18 @@ async def citizen_signup(data: CitizenSignup):
     # Create citizen object
     citizen = Citizen(
         name=data.name,
-        email=data.email,
         password=data.password,
+        email=data.email,
         phone=data.phone,
-        address=data.address,
         id_type=data.id_type,
         id_number=data.id_number,
+        address=data.address,
+        dob=data.dob,
+        gender=data.gender,
+        occupation=data.occupation,
+        caste=data.caste,
+        annual_income=data.annual_income,
+        image_url=data.image_url,
     )
 
     # Get citizen as dictionary
@@ -63,13 +69,16 @@ async def vendor_signup(data: VendorSignup):
 
     vendor = Vendor(
         name=data.name,
-        email=data.email,
         password=data.password,
+        email=data.email,
+        image_url=data.image_url,
+        gender=data.gender,
         business_name=data.business_name,
-        phone=data.phone,
-        address=data.address,
         business_id=data.business_id,
         license_type=data.license_type,
+        occupation=data.occupation,
+        phone=data.phone,
+        address=data.address,
     )
 
     vendor_dict = vendor.to_dict()
@@ -93,8 +102,8 @@ async def government_signup(data: GovernmentSignup):
 
     government = Government(
         name=data.name,
-        email=data.email,
         password=data.password,
+        email=data.email,
         department=data.department,
         jurisdiction=data.jurisdiction,
         govt_id=data.govt_id,
@@ -159,4 +168,4 @@ async def login(data: LoginRequest):
 
 @router.get("/logout", response_model=MessageResponse)
 async def logout():
-    pass
+    return JSONResponse(content={"message": "Logged out successfully"})

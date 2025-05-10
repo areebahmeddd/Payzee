@@ -4,7 +4,13 @@ from datetime import datetime, timezone
 
 class Government:
     def __init__(
-        self, name, email, password, department=None, jurisdiction=None, govt_id=None
+        self,
+        name,
+        password,
+        email=None,
+        department=None,
+        jurisdiction=None,
+        govt_id=None,
     ):
         self.account_info = {
             "id": str(uuid.uuid4()),
@@ -26,14 +32,20 @@ class Government:
         }
 
     def to_dict(self):
-        return {"account_info": self.account_info, "wallet_info": self.wallet_info}
+        return {
+            "account_info": self.account_info,
+            "wallet_info": self.wallet_info,
+        }
 
     @classmethod
     def from_dict(cls, data):
         govt = cls(
             name=data["account_info"]["name"],
-            email=data["account_info"]["email"],
             password=data["account_info"]["password"],
+            email=data["account_info"].get("email"),
+            department=data["account_info"].get("department"),
+            jurisdiction=data["account_info"].get("jurisdiction"),
+            govt_id=data["account_info"].get("govt_id"),
         )
         govt.account_info = data["account_info"]
         govt.wallet_info = data["wallet_info"]
