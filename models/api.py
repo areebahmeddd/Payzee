@@ -34,7 +34,7 @@ class GovernmentSignup(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: Optional[EmailStr] = None
+    id_number: str
     password: str
 
 
@@ -51,8 +51,28 @@ class SchemeCreate(BaseModel):
     name: str
     description: str
     amount: float
+    status: str = "active"  # active, inactive, completed
     eligibility_criteria: Optional[Dict[str, Any]] = None
     tags: Optional[List[str]] = None
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Senior Citizen Pension Scheme",
+                "description": "Monthly pension for elderly citizens",
+                "amount": 3000.00,
+                "status": "active",
+                "eligibility_criteria": {
+                    "min_age": 65,
+                    "gender": "any",  # "male", "female", "other", "any"
+                    "state": "all",  # specific state name or "all"
+                    "district": "all",  # specific district name or "all"
+                    "city": "all",  # specific city name or "all"
+                    "caste": "all"  # specific caste category or "all"
+                },
+                "tags": ["pension", "elderly", "monthly"]
+            }
+        }
 
 
 # Disbursement model

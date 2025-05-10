@@ -116,7 +116,7 @@ async def government_signup(data: GovernmentSignup):
 @router.post("/login", response_model=MessageResponse)
 async def login(data: LoginRequest):
     # Check in citizens collection
-    citizen_results = query_citizens_by_field("account_info.email", data.email)
+    citizen_results = query_citizens_by_field("id_number", data.id_number)
     if citizen_results:
         citizen = citizen_results[0]
         if citizen["account_info"]["password"] == data.password:
@@ -129,7 +129,7 @@ async def login(data: LoginRequest):
             )
 
     # Check in vendors collection
-    vendor_results = query_vendors_by_field("account_info.email", data.email)
+    vendor_results = query_vendors_by_field("business_id", data.id_number)
     if vendor_results:
         vendor = vendor_results[0]
         if vendor["account_info"]["password"] == data.password:
@@ -142,7 +142,7 @@ async def login(data: LoginRequest):
             )
 
     # Check in governments collection
-    govt_results = query_governments_by_field("account_info.email", data.email)
+    govt_results = query_governments_by_field("govt_id", data.id_number)
     if govt_results:
         govt = govt_results[0]
         if govt["account_info"]["password"] == data.password:
@@ -154,7 +154,7 @@ async def login(data: LoginRequest):
                 }
             )
 
-    raise HTTPException(status_code=401, detail="Invalid email or password")
+    raise HTTPException(status_code=401, detail="Invalid ID number or password")
 
 
 @router.get("/logout", response_model=MessageResponse)
