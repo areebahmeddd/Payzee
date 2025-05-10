@@ -86,7 +86,7 @@ async def get_all_citizen_profiles(government_id: str):
 
 # Get specific citizen by ID
 @router.get("/{government_id}/citizen/{citizen_id}")
-async def get_specific_citizen(government_id: str, citizen_id: str):
+async def get_specific_scheme_citizen(government_id: str, citizen_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -119,7 +119,7 @@ async def get_all_vendor_profiles(government_id: str):
 
 # Get specific vendor by ID
 @router.get("/{government_id}/vendor/{vendor_id}")
-async def get_specific_vendor(government_id: str, vendor_id: str):
+async def get_specific_scheme_vendor(government_id: str, vendor_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -152,7 +152,7 @@ async def get_all_system_transactions(government_id: str):
 
 # Get specific transaction by ID
 @router.get("/{government_id}/transaction/{transaction_id}")
-async def get_specific_transaction(government_id: str, transaction_id: str):
+async def get_specific_scheme_transaction(government_id: str, transaction_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -207,7 +207,7 @@ async def get_schemes(government_id: str):
 
 # Get a specific scheme by ID
 @router.get("/{government_id}/schemes/{scheme_id}")
-async def get_scheme_details(government_id: str, scheme_id: str):
+async def get_specific_scheme(government_id: str, scheme_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -222,6 +222,71 @@ async def get_scheme_details(government_id: str, scheme_id: str):
         )
 
     return JSONResponse(content=scheme)
+
+
+# Update a specific scheme
+@router.put("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
+async def update_scheme(government_id: str, scheme_id: str, scheme_data: SchemeCreate):
+    govt = get_government(government_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    existing_scheme = get_scheme(scheme_id)
+    if not existing_scheme:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+
+    if existing_scheme["govt_id"] != government_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to update this scheme"
+        )
+
+    updated_scheme = Scheme(
+        name=scheme_data.name,
+        description=scheme_data.description,
+        govt_id=government_id,
+        amount=scheme_data.amount,
+        eligibility_criteria=scheme_data.eligibility_criteria,
+        tags=scheme_data.tags or [],
+        status=scheme_data.status,
+    )
+
+    # Preserve the original ID and beneficiaries
+    updated_scheme.id = scheme_id
+    updated_scheme.beneficiaries = existing_scheme["beneficiaries"]
+    updated_scheme.created_at = existing_scheme["created_at"]
+
+    # Update and save
+    scheme_dict = updated_scheme.to_dict()
+    save_scheme(scheme_id, scheme_dict)
+
+    return JSONResponse(
+        content={"message": "Scheme updated successfully", "scheme_id": scheme_id}
+    )
+
+
+# Soft delete (mark as inactive) a specific scheme
+@router.delete("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
+async def soft_delete_scheme(government_id: str, scheme_id: str):
+    govt = get_government(government_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    existing_scheme = get_scheme(scheme_id)
+    if not existing_scheme:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+
+    if existing_scheme["govt_id"] != government_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to delete this scheme"
+        )
+
+    # Update only the status field to inactive
+    existing_scheme["status"] = "inactive"
+    save_scheme(scheme_id, existing_scheme)
+
+    return JSONResponse(
+        content={"message": "Scheme marked as inactive", "scheme_id": scheme_id}
+    )
 
 
 # Get beneficiaries of a specific scheme
