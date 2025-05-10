@@ -394,6 +394,8 @@ schemes = [
             "max_age": 65,
             "gender": "any",
             "state": "Maharashtra",
+            "district": "Mumbai",
+            "city": "Mumbai",
             "caste": "OBC",
             "annual_income": 100000
         },
@@ -411,6 +413,8 @@ schemes = [
             "max_age": 25,
             "gender": "any",
             "state": "Karnataka",
+            "district": "Bangalore Rural",
+            "city": "Doddaballapur",
             "caste": "SC",
             "annual_income": 300000
         },
@@ -428,6 +432,8 @@ schemes = [
             "max_age": 100,
             "gender": "any",
             "state": "Delhi",
+            "district": "all",
+            "city": "all",
             "caste": "all",
             "annual_income": 250000
         },
@@ -445,6 +451,8 @@ schemes = [
             "max_age": 65,
             "gender": "female",
             "state": "Maharashtra",
+            "district": "all",
+            "city": "all",
             "caste": "all",
             "annual_income": 150000
         },
@@ -462,6 +470,8 @@ schemes = [
             "max_age": 40,
             "gender": "any",
             "state": "all",
+            "district": "all",
+            "city": "all",
             "caste": "all",
             "annual_income": 1500000
         },
