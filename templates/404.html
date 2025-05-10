@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/templates/favicon.ico">
-    <title>Payzee - Digital Payment System</title>
+    <title>Payzee - Page Not Found</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,16 +26,28 @@
         }
         main {
             flex-grow: 1;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        .welcome-container {
+        .error-container {
             max-width: 600px;
             margin: 0 auto;
+        }
+        .error-code {
+            font-size: 8rem;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+            line-height: 1;
+        }
+        .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #666;
         }
         .illustration {
             width: 200px;
@@ -49,16 +61,6 @@
             font-size: 6rem;
             color: #2563eb;
         }
-        h1 {
-            font-size: 2.5rem;
-            margin: 1rem 0;
-            color: #333;
-        }
-        .tagline {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            color: #666;
-        }
         .btn {
             display: inline-block;
             background-color: #2563eb;
@@ -71,10 +73,6 @@
         }
         .btn:hover {
             background-color: #1d4ed8;
-        }
-        .info-text {
-            margin: 2rem 0;
-            color: #555;
         }
         footer {
             padding: 1rem;
@@ -97,13 +95,11 @@
         <div class="logo">Payzee</div>
     </header>
     <main>
-        <div class="welcome-container">
-            <div class="illustration">💳</div>
-            <h1>Welcome to Payzee API</h1>
-            <p class="tagline">A secure digital payment system powered by e-rupee.</p>
-            <div>
-                <a href="/docs" class="btn">API Documentation</a>
-            </div>
+        <div class="error-container">
+            <div class="illustration">💸</div>
+            <h1 class="error-code">404</h1>
+            <p class="error-message">Oops! The page you're looking for can't be found.</p>
+            <a href="/" class="btn">Back to Homepage</a>
         </div>
     </main>
     <footer>Made with ❤️ by <a href="https://github.com/1mindlabs">1MindLabs</a></footer>

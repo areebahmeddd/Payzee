@@ -1,3 +1,4 @@
+# DEPRECATED: This script is deprecated. Use `scripts/install.sh` instead.
 #!/bin/bash
 
 set -e
