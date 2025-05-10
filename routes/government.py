@@ -82,7 +82,7 @@ async def get_wallet(government_id: str):
 
 
 # Get all citizens
-@router.get("/{government_id}/all-citizens")
+@router.get("/{government_id}/citizens")
 async def get_all_citizen_profiles(government_id: str):
     govt = get_government(government_id)
     if not govt:
@@ -98,7 +98,7 @@ async def get_all_citizen_profiles(government_id: str):
 
 
 # Get specific citizen by ID
-@router.get("/{government_id}/citizen/{citizen_id}")
+@router.get("/{government_id}/citizens/{citizen_id}")
 async def get_specific_scheme_citizen(government_id: str, citizen_id: str):
     govt = get_government(government_id)
     if not govt:
@@ -115,7 +115,7 @@ async def get_specific_scheme_citizen(government_id: str, citizen_id: str):
 
 
 # Get all vendors
-@router.get("/{government_id}/all-vendors")
+@router.get("/{government_id}/vendors")
 async def get_all_vendor_profiles(government_id: str):
     govt = get_government(government_id)
     if not govt:
@@ -131,7 +131,7 @@ async def get_all_vendor_profiles(government_id: str):
 
 
 # Get specific vendor by ID
-@router.get("/{government_id}/vendor/{vendor_id}")
+@router.get("/{government_id}/vendors/{vendor_id}")
 async def get_specific_scheme_vendor(government_id: str, vendor_id: str):
     govt = get_government(government_id)
     if not govt:
@@ -148,7 +148,7 @@ async def get_specific_scheme_vendor(government_id: str, vendor_id: str):
 
 
 # Get all transactions
-@router.get("/{government_id}/all-transactions")
+@router.get("/{government_id}/transactions")
 async def get_all_system_transactions(government_id: str):
     govt = get_government(government_id)
     if not govt:
@@ -164,7 +164,7 @@ async def get_all_system_transactions(government_id: str):
 
 
 # Get specific transaction by ID
-@router.get("/{government_id}/transaction/{transaction_id}")
+@router.get("/{government_id}/transactions/{transaction_id}")
 async def get_specific_scheme_transaction(government_id: str, transaction_id: str):
     govt = get_government(government_id)
     if not govt:

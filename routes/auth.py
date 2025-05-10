@@ -166,6 +166,6 @@ async def login(data: LoginRequest):
     raise HTTPException(status_code=401, detail="Invalid ID number or password")
 
 
-@router.get("/logout", response_model=MessageResponse)
+@router.post("/logout", response_model=MessageResponse)
 async def logout():
     return JSONResponse(content={"message": "Logged out successfully"})

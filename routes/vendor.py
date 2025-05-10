@@ -125,8 +125,8 @@ async def get_transactions(vendor_id: str):
 
 
 # Get transaction by ID
-@router.get("/{vendor_id}/transaction/{transaction_id}")
-async def get_transaction_by_id(vendor_id: str, transaction_id: str):
+@router.get("/{vendor_id}/transactions/{transaction_id}")
+async def get_specific_transaction(vendor_id: str, transaction_id: str):
     # Check if vendor exists
     vendor = get_vendor(vendor_id)
     if not vendor:
