@@ -12,6 +12,7 @@ class Citizen:
         address=None,
         id_type="Aadhaar",
         id_number=None,
+        location=None,
     ):
         self.account_info = {
             "id": str(uuid.uuid4()),
@@ -28,6 +29,7 @@ class Citizen:
             "address": address,
             "id_type": id_type,
             "id_number": id_number,
+            "location": location or {},
         }
 
         self.wallet_info = {
@@ -40,15 +42,15 @@ class Citizen:
             "account_info": self.account_info,
             "personal_info": self.personal_info,
             "wallet_info": self.wallet_info,
-        }
+        } @ classmethod
 
-    @classmethod
     def from_dict(cls, data):
         citizen = cls(
             name=data["account_info"]["name"],
             email=data["account_info"]["email"],
             password=data["account_info"]["password"],
             phone=data["personal_info"].get("phone"),
+            location=data["personal_info"].get("location"),
             address=data["personal_info"].get("address"),
             id_type=data["personal_info"].get("id_type", "Aadhaar"),
             id_number=data["personal_info"].get("id_number"),

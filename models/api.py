@@ -2,6 +2,12 @@ from pydantic import BaseModel, EmailStr
 from typing import Any, Optional, Dict, List
 
 
+# Location model
+class Location(BaseModel):
+    latitude: float
+    longitude: float
+
+
 # Signup models
 class CitizenSignup(BaseModel):
     name: str
@@ -11,6 +17,7 @@ class CitizenSignup(BaseModel):
     address: Optional[str] = None
     id_type: str = "Aadhaar"
     id_number: str
+    location: Optional[Location] = None
 
 
 class VendorSignup(BaseModel):
@@ -22,6 +29,7 @@ class VendorSignup(BaseModel):
     business_name: str
     business_id: Optional[str] = None
     license_type: str
+    location: Optional[Location] = None
 
 
 class GovernmentSignup(BaseModel):

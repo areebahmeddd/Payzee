@@ -13,6 +13,7 @@ class Vendor:
         address=None,
         business_id=None,
         license_type=None,
+        location=None,
     ):
         self.account_info = {
             "id": str(uuid.uuid4()),
@@ -30,6 +31,7 @@ class Vendor:
             "address": address,
             "business_id": business_id,
             "license_type": license_type,
+            "location": location or {},
         }
 
         self.wallet_info = {"balance": 0, "transactions": []}
@@ -39,9 +41,8 @@ class Vendor:
             "account_info": self.account_info,
             "business_info": self.business_info,
             "wallet_info": self.wallet_info,
-        }
+        } @ classmethod
 
-    @classmethod
     def from_dict(cls, data):
         vendor = cls(
             name=data["account_info"]["name"],
@@ -49,6 +50,7 @@ class Vendor:
             password=data["account_info"]["password"],
             business_name=data["business_info"].get("business_name"),
             phone=data["business_info"].get("phone"),
+            location=data["business_info"].get("location"),
             address=data["business_info"].get("address"),
             business_id=data["business_info"].get("business_id"),
             license_type=data["business_info"].get("license_type"),

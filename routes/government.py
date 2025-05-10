@@ -177,9 +177,9 @@ async def create_scheme(government_id: str, scheme_data: SchemeCreate):
         description=scheme_data.description,
         govt_id=government_id,
         amount=scheme_data.amount,
-        status=scheme_data.status,
         eligibility_criteria=scheme_data.eligibility_criteria,
         tags=scheme_data.tags or [],
+        status=scheme_data.status,
     )
 
     scheme_dict = scheme.to_dict()
@@ -203,6 +203,25 @@ async def get_schemes(government_id: str):
     # Get schemes created by this government
     schemes = query_schemes_by_field("govt_id", government_id)
     return JSONResponse(content=schemes)
+
+
+# Get a specific scheme by ID
+@router.get("/{government_id}/schemes/{scheme_id}")
+async def get_scheme_details(government_id: str, scheme_id: str):
+    govt = get_government(government_id)
+    if not govt:
+        raise HTTPException(status_code=404, detail="Government not found")
+
+    scheme = get_scheme(scheme_id)
+    if not scheme:
+        raise HTTPException(status_code=404, detail="Scheme not found")
+
+    if scheme["govt_id"] != government_id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this scheme"
+        )
+
+    return JSONResponse(content=scheme)
 
 
 # Get beneficiaries of a specific scheme

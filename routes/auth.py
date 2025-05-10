@@ -38,6 +38,7 @@ async def citizen_signup(data: CitizenSignup):
         address=data.address,
         id_type=data.id_type,
         id_number=data.id_number,
+        location=data.location.dict() if data.location else None,
     )
 
     # Get citizen as dictionary
@@ -70,6 +71,7 @@ async def vendor_signup(data: VendorSignup):
         address=data.address,
         business_id=data.business_id,
         license_type=data.license_type,
+        location=data.location.dict() if data.location else None,
     )
 
     vendor_dict = vendor.to_dict()
