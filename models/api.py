@@ -71,13 +71,15 @@ class SchemeCreate(BaseModel):
                 "amount": 3000.00,
                 "status": "active",
                 "eligibility_criteria": {
+                    "occupation": "any",  # "farmer", "labour", "business", "any"
                     "min_age": 60,
+                    "max_age": 80,
                     "gender": "any",  # "male", "female", "other", "any"
                     "state": "Karnataka",  # specific state name or "all"
                     "district": "Bangalore Urban",  # specific district name or "all"
                     "city": "Bangalore",  # specific city name or "all"
                     "caste": "General",  # "General", "OBC", "SC", "ST", "all"
-                    "income_limit": 150000,  # annual income limit in INR
+                    "annual_income": 150000,  # annual income limit in INR
                 },
                 "tags": ["pension", "elderly", "senior citizen", "retirement"],
             }

@@ -197,7 +197,7 @@ vendors = [
         "business_name": "Malhotra Grocery Mart",
         "phone": "+91 9988776655",
         "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
-        "business_id": "22AAAAA1111Z1Z5",
+        "business_id": "GSTIN22AAAAA1111Z",
         "license_type": "private",
         "location": {"latitude": 28.5698, "longitude": 77.2421}  # Delhi, Lajpat Nagar coordinates
     },
@@ -208,7 +208,7 @@ vendors = [
         "business_name": "MedPlus Pharmacy",
         "phone": "+91 8877665544",
         "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
-        "business_id": "09BBBBB2222Y1Y4",
+        "business_id": "GSTIN09BBBBB2222Y",
         "license_type": "public",
         "location": {"latitude": 28.5705, "longitude": 77.3160}  # Noida coordinates
     },
@@ -219,7 +219,7 @@ vendors = [
         "business_name": "Khan Kirana Store",
         "phone": "+91 7766554433",
         "address": "10, Park Street, Kolkata, West Bengal, 700016",
-        "business_id": "19CCCCC3333X1X3",
+        "business_id": "GSTIN19CCCCC3333X",
         "license_type": "government",
         "location": {"latitude": 22.5726, "longitude": 88.3639}  # Kolkata coordinates
     }
@@ -333,13 +333,14 @@ schemes = [
         "status": "active",
         "eligibility_criteria": {
             "occupation": "farmer",
-            "land_holding": "small_marginal",
             "min_age": 18,
+            "max_age": 65,
             "gender": "male",
             "state": "Maharashtra",
             "district": "Mumbai",
             "city": "Mumbai",
-            "caste": "OBC"
+            "caste": "OBC",
+            "annual_income": 100000
         },
         "tags": ["agriculture", "farmer-welfare", "income-support"]
     },
@@ -350,16 +351,15 @@ schemes = [
         "amount": 15000,
         "status": "active",
         "eligibility_criteria": {
-            "education": "higher",
-            "residence": "rural_karnataka",
-            "income_below": 300000,
+            "occupation": "student",
             "min_age": 17,
             "max_age": 25,
             "gender": "female",
             "state": "Karnataka",
             "district": "Bangalore Rural",
             "city": "Doddaballapur",
-            "caste": "SC"
+            "caste": "SC",
+            "annual_income": 300000
         },
         "tags": ["education", "scholarship", "rural"]
     },
@@ -370,14 +370,15 @@ schemes = [
         "amount": 5000,
         "status": "active",
         "eligibility_criteria": {
-            "residence": "delhi",
-            "income_below": 250000,
+            "occupation": "any",
             "min_age": 0,
+            "max_age": 100,
             "gender": "any",
-            "state": "all",
+            "state": "Delhi",
             "district": "all",
             "city": "all",
-            "caste": "all"
+            "caste": "all",
+            "annual_income": 250000
         },
         "tags": ["health", "insurance", "poverty"]
     }
