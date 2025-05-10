@@ -36,7 +36,6 @@ def get_all_documents(collection_prefix, index_set):
     for doc_id in all_ids:
         data = get_document(collection_prefix, doc_id)
         if data:
-            data["id"] = doc_id
             result.append(data)
     return result
 
