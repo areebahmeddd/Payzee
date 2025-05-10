@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
-# from middleware.middleware import LoggingMiddleware
+# from middleware.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
@@ -25,6 +25,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 # app.add_middleware(LoggingMiddleware)
+# app.add_middleware(ErrorHandlerMiddleware)
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
