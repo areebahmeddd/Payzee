@@ -5,7 +5,7 @@ from typing import Any, Optional, Dict, List
 # Signup models
 class CitizenSignup(BaseModel):
     name: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     password: str
     phone: Optional[str] = None
     address: Optional[str] = None
@@ -15,7 +15,7 @@ class CitizenSignup(BaseModel):
 
 class VendorSignup(BaseModel):
     name: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     password: str
     phone: Optional[str] = None
     address: Optional[str] = None
@@ -26,7 +26,7 @@ class VendorSignup(BaseModel):
 
 class GovernmentSignup(BaseModel):
     name: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     password: str
     department: str
     jurisdiction: str
@@ -34,7 +34,7 @@ class GovernmentSignup(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None
     password: str
 
 
