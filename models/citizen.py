@@ -1,25 +1,26 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
 
 
 class Citizen:
     def __init__(
         self,
-        name,
-        password,
-        email=None,
-        phone=None,
-        id_type="Aadhaar",
-        id_number=None,
-        address=None,
-        dob=None,
-        gender=None,
-        occupation=None,
-        caste=None,
-        annual_income=None,
-        image_url=None,
+        name: str,
+        password: str,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        id_type: str = "Aadhaar",
+        id_number: Optional[str] = None,
+        address: Optional[str] = None,
+        dob: Optional[str] = None,
+        gender: Optional[str] = None,
+        occupation: Optional[str] = None,
+        caste: Optional[str] = None,
+        annual_income: Optional[float] = None,
+        image_url: Optional[str] = None,
     ):
-        self.account_info = {
+        self.account_info: Dict[str, Any] = {
             "id": str(uuid.uuid4()),
             "name": name,
             "email": email,
@@ -30,7 +31,7 @@ class Citizen:
             "image_url": image_url,
         }
 
-        self.personal_info = {
+        self.personal_info: Dict[str, Any] = {
             "phone": phone,
             "id_type": id_type,
             "id_number": id_number,
@@ -42,14 +43,14 @@ class Citizen:
             "annual_income": annual_income,
         }
 
-        self.wallet_info = {
+        self.wallet_info: Dict[str, Any] = {
             "govt_wallet": {"balance": 0, "transactions": []},
             "personal_wallet": {"balance": 0, "transactions": []},
         }
 
-        self.scheme_info = []
+        self.scheme_info: List[str] = []
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "account_info": self.account_info,
             "personal_info": self.personal_info,
@@ -58,7 +59,7 @@ class Citizen:
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Dict[str, Any]) -> "Citizen":
         citizen = cls(
             name=data["account_info"]["name"],
             password=data["account_info"]["password"],

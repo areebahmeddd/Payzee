@@ -35,11 +35,11 @@ app.include_router(government_router, prefix="/api/v1/governments", tags=["gover
 
 
 @app.get("/", response_class=HTMLResponse)
-def root():
+def root() -> HTMLResponse:
     html_file = Path("templates/index.html").read_text()
     return html_file
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> JSONResponse:
     return JSONResponse(content={"status": "ok"})

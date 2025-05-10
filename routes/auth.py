@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 @router.post("/signup/citizen", response_model=MessageResponse)
-async def citizen_signup(data: CitizenSignup):
+async def citizen_signup(data: CitizenSignup) -> JSONResponse:
     # Check if email already registered
     existing_users = query_citizens_by_field("account_info.email", data.email)
     if existing_users:
@@ -62,7 +62,7 @@ async def citizen_signup(data: CitizenSignup):
 
 
 @router.post("/signup/vendor", response_model=MessageResponse)
-async def vendor_signup(data: VendorSignup):
+async def vendor_signup(data: VendorSignup) -> JSONResponse:
     existing_users = query_vendors_by_field("account_info.email", data.email)
     if existing_users:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -95,7 +95,7 @@ async def vendor_signup(data: VendorSignup):
 
 
 @router.post("/signup/government", response_model=MessageResponse)
-async def government_signup(data: GovernmentSignup):
+async def government_signup(data: GovernmentSignup) -> JSONResponse:
     existing_users = query_governments_by_field("account_info.email", data.email)
     if existing_users:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -123,7 +123,7 @@ async def government_signup(data: GovernmentSignup):
 
 
 @router.post("/login", response_model=MessageResponse)
-async def login(data: LoginRequest):
+async def login(data: LoginRequest) -> JSONResponse:
     # Check in citizens collection
     citizen_results = query_citizens_by_field("personal_info.id_number", data.id_number)
     if citizen_results:
@@ -167,5 +167,5 @@ async def login(data: LoginRequest):
 
 
 @router.post("/logout", response_model=MessageResponse)
-async def logout():
+async def logout() -> JSONResponse:
     return JSONResponse(content={"message": "Logged out successfully"})

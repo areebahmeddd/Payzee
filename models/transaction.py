@@ -1,16 +1,17 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 
 
 class Transaction:
     def __init__(
         self,
-        from_id,
-        to_id,
-        amount,
-        tx_type,
-        scheme_id=None,
-        description=None,
+        from_id: str,
+        to_id: str,
+        amount: float,
+        tx_type: str,
+        scheme_id: Optional[str] = None,
+        description: Optional[str] = None,
     ):
         self.id = str(uuid.uuid4())
         self.from_id = from_id  # ID of the sender (govt, citizen, vendor)
@@ -22,7 +23,7 @@ class Transaction:
         self.status = "completed"  # pending, completed, failed
         self.timestamp = datetime.now(timezone.utc)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "from_id": self.from_id,
@@ -36,7 +37,7 @@ class Transaction:
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Dict[str, Any]) -> "Transaction":
         transaction = cls(
             from_id=data["from_id"],
             to_id=data["to_id"],

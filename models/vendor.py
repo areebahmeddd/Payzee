@@ -1,23 +1,24 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 
 
 class Vendor:
     def __init__(
         self,
-        name,
-        password,
-        email=None,
-        image_url=None,
-        gender=None,
-        business_name=None,
-        business_id=None,
-        license_type=None,
-        occupation=None,
-        phone=None,
-        address=None,
+        name: str,
+        password: str,
+        email: Optional[str] = None,
+        image_url: Optional[str] = None,
+        gender: Optional[str] = None,
+        business_name: Optional[str] = None,
+        business_id: Optional[str] = None,
+        license_type: Optional[str] = None,
+        occupation: Optional[str] = None,
+        phone: Optional[str] = None,
+        address: Optional[str] = None,
     ):
-        self.account_info = {
+        self.account_info: Dict[str, Any] = {
             "id": str(uuid.uuid4()),
             "name": name,
             "email": email,
@@ -29,7 +30,7 @@ class Vendor:
             "image_url": image_url,
         }
 
-        self.business_info = {
+        self.business_info: Dict[str, Any] = {
             "business_name": business_name,
             "business_id": business_id,
             "license_type": license_type,
@@ -38,12 +39,12 @@ class Vendor:
             "address": address,
         }
 
-        self.wallet_info = {
+        self.wallet_info: Dict[str, Any] = {
             "balance": 0,
             "transactions": [],
         }
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "account_info": self.account_info,
             "business_info": self.business_info,
@@ -51,7 +52,7 @@ class Vendor:
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Dict[str, Any]) -> "Vendor":
         vendor = cls(
             name=data["account_info"]["name"],
             password=data["account_info"]["password"],

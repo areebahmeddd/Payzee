@@ -1,18 +1,19 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 
 
 class Government:
     def __init__(
         self,
-        name,
-        password,
-        email=None,
-        jurisdiction=None,
-        govt_id=None,
-        image_url=None,
+        name: str,
+        password: str,
+        email: Optional[str] = None,
+        jurisdiction: Optional[str] = None,
+        govt_id: Optional[str] = None,
+        image_url: Optional[str] = None,
     ):
-        self.account_info = {
+        self.account_info: Dict[str, Any] = {
             "id": str(uuid.uuid4()),
             "name": name,
             "email": email,
@@ -25,20 +26,20 @@ class Government:
             "image_url": image_url,
         }
 
-        self.wallet_info = {
+        self.wallet_info: Dict[str, Any] = {
             "balance": 0,
             "schemes": [],  # References to scheme IDs managed by this government account
             "transactions": [],
         }
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "account_info": self.account_info,
             "wallet_info": self.wallet_info,
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Dict[str, Any]) -> "Government":
         govt = cls(
             name=data["account_info"]["name"],
             password=data["account_info"]["password"],

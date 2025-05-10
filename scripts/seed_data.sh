@@ -89,7 +89,6 @@ import json
 import uuid
 import time
 import random
-import hashlib
 from datetime import datetime, timedelta
 
 CITIZENS_PREFIX = "citizen:"
@@ -111,9 +110,6 @@ def serialize_for_db(data):
 
 def deserialize_from_db(data):
     return json.loads(data)
-
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
 
 print("Clearing Redis database...")
 redis_client.flushall()
@@ -204,14 +200,12 @@ for citizen_data in citizens:
     citizen_id = str(uuid.uuid4())
     citizen_ids.append(citizen_id)
 
-    hashed_pw = hash_password(citizen_data['password'])
-
     citizen = {
         "account_info": {
             "id": citizen_id,
             "name": citizen_data["name"],
             "email": citizen_data["email"],
-            "password": hashed_pw,
+            "password": "admin@123",
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "citizen",
@@ -287,14 +281,12 @@ for vendor_data in vendors:
     vendor_id = str(uuid.uuid4())
     vendor_ids.append(vendor_id)
 
-    hashed_pw = hash_password(vendor_data['password'])
-
     vendor = {
         "account_info": {
             "id": vendor_id,
             "name": vendor_data["name"],
             "email": vendor_data["email"],
-            "password": hashed_pw,
+            "password": "admin@123",
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "vendor",
@@ -353,14 +345,12 @@ for govt_data in governments:
     govt_id = str(uuid.uuid4())
     govt_ids.append(govt_id)
 
-    hashed_pw = hash_password(govt_data['password'])
-
     govt = {
         "account_info": {
             "id": govt_id,
             "name": govt_data["name"],
             "email": govt_data["email"],
-            "password": hashed_pw,
+            "password": "admin@123",
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "government",

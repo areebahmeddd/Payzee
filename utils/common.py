@@ -1,9 +1,12 @@
 from fastapi import HTTPException
+from typing import Dict, Any, Tuple, Optional
 from db import citizens_collection, vendors_collection, governments_collection
 
 
 # TODO: Migrate from Firestore to Redis
-def get_user_by_id(user_id, user_type=None):
+def get_user_by_id(
+    user_id: str, user_type: Optional[str] = None
+) -> Tuple[Any, Dict[str, Any]]:
     """Get user by ID from Firestore"""
     if user_type == "citizen" or user_type is None:
         doc_ref = citizens_collection.document(user_id)
@@ -26,7 +29,7 @@ def get_user_by_id(user_id, user_type=None):
     raise HTTPException(status_code=404, detail="User not found")
 
 
-def remove_sensitive_info(user_data):
+def remove_sensitive_info(user_data: Dict[str, Any]) -> Dict[str, Any]:
     """Remove sensitive information from user data"""
     clean_data = {**user_data}
 

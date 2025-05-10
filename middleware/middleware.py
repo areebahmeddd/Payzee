@@ -1,6 +1,9 @@
 import logging
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+from typing import Callable, Awaitable
 
 # Configure logging
 logging.basicConfig(
@@ -13,7 +16,9 @@ logger = logging.getLogger(__name__)
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log requests and responses."""
 
-    async def dispatch(self, request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         start_time = time.time()
 
         # Log the request
@@ -55,7 +60,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Middleware to limit the rate of requests."""
 
-    async def dispatch(self, request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         # TODO: Implement rate limiting logic
         return await call_next(request)
 
@@ -63,6 +70,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """Middleware to handle authentication."""
 
-    async def dispatch(self, request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         # TODO: Implement authentication logic
         return await call_next(request)

@@ -1,15 +1,21 @@
+from typing import Any, Dict, List, Optional
 from .redis_config import redis_client
 from utils.db_helpers import serialize_for_db, deserialize_from_db
 
 
-def get_document(collection_prefix, doc_id):
+def get_document(collection_prefix: str, doc_id: str) -> Optional[Dict[str, Any]]:
     """Get a document from Redis by ID"""
     key = f"{collection_prefix}{doc_id}"
     data = redis_client.get(key)
     return deserialize_from_db(data)
 
 
-def set_document(collection_prefix, doc_id, data, index_set=None):
+def set_document(
+    collection_prefix: str,
+    doc_id: str,
+    data: Dict[str, Any],
+    index_set: Optional[str] = None,
+) -> str:
     """Save a document to Redis"""
     key = f"{collection_prefix}{doc_id}"
     redis_client.set(key, serialize_for_db(data))
@@ -19,7 +25,9 @@ def set_document(collection_prefix, doc_id, data, index_set=None):
     return doc_id
 
 
-def delete_document(collection_prefix, doc_id, index_set=None):
+def delete_document(
+    collection_prefix: str, doc_id: str, index_set: Optional[str] = None
+) -> bool:
     """Delete a document from Redis"""
     key = f"{collection_prefix}{doc_id}"
     redis_client.delete(key)
@@ -29,7 +37,7 @@ def delete_document(collection_prefix, doc_id, index_set=None):
     return True
 
 
-def get_all_documents(collection_prefix, index_set):
+def get_all_documents(collection_prefix: str, index_set: str) -> List[Dict[str, Any]]:
     """Get all documents of a specific type"""
     result = []
     all_ids = redis_client.smembers(index_set)
@@ -40,7 +48,9 @@ def get_all_documents(collection_prefix, index_set):
     return result
 
 
-def query_by_field(collection_prefix, index_set, field_path, value):
+def query_by_field(
+    collection_prefix: str, index_set: str, field_path: str, value: Any
+) -> List[Dict[str, Any]]:
     """Query documents where a field equals a value"""
     result = []
     all_ids = redis_client.smembers(index_set)
@@ -68,7 +78,9 @@ def query_by_field(collection_prefix, index_set, field_path, value):
     return result
 
 
-def update_document(collection_prefix, doc_id, update_data):
+def update_document(
+    collection_prefix: str, doc_id: str, update_data: Dict[str, Any]
+) -> bool:
     """Update a document in Redis"""
     data = get_document(collection_prefix, doc_id)
     if data:
@@ -93,7 +105,9 @@ def update_document(collection_prefix, doc_id, update_data):
     return False
 
 
-def array_union(collection_prefix, doc_id, field_path, values):
+def array_union(
+    collection_prefix: str, doc_id: str, field_path: str, values: List[Any]
+) -> bool:
     """Adds values to an array field, avoiding duplicates"""
     data = get_document(collection_prefix, doc_id)
     if data:

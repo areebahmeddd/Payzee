@@ -1,31 +1,34 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
 
 
 class Scheme:
     def __init__(
         self,
-        name,
-        description,
-        govt_id,
-        amount,
-        eligibility_criteria=None,
-        tags=None,
-        status="active",
+        name: str,
+        description: str,
+        govt_id: str,
+        amount: float,
+        eligibility_criteria: Optional[Dict[str, Any]] = None,
+        tags: Optional[List[str]] = None,
+        status: str = "active",
     ):
-        self.id = str(uuid.uuid4())
-        self.name = name
-        self.description = description
-        self.govt_id = govt_id  # Reference to the government that created this scheme
-        self.amount = amount
-        self.status = status  # active, inactive, completed
-        self.eligibility_criteria = eligibility_criteria or {}
-        self.tags = tags or []
-        self.beneficiaries = []  # List of citizen IDs who are beneficiaries
-        self.created_at = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+        self.id: str = str(uuid.uuid4())
+        self.name: str = name
+        self.description: str = description
+        self.govt_id: str = (
+            govt_id  # Reference to the government that created this scheme
+        )
+        self.amount: float = amount
+        self.status: str = status  # active, inactive, completed
+        self.eligibility_criteria: Dict[str, Any] = eligibility_criteria or {}
+        self.tags: List[str] = tags or []
+        self.beneficiaries: List[str] = []  # List of citizen IDs who are beneficiaries
+        self.created_at: datetime = datetime.now(timezone.utc)
+        self.updated_at: datetime = datetime.now(timezone.utc)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -41,7 +44,7 @@ class Scheme:
         }
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Dict[str, Any]) -> "Scheme":
         scheme = cls(
             name=data["name"],
             description=data["description"],
