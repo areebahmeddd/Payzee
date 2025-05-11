@@ -65,8 +65,8 @@ class SchemeCreate(BaseModel):
     eligibility_criteria: Dict[str, Any]
     tags: Optional[List[str]] = None
 
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "name": "Pradhan Mantri Vaya Vandana Yojana",
                 "description": "Monthly pension scheme for elderly citizens above 60 years",
@@ -86,6 +86,7 @@ class SchemeCreate(BaseModel):
                 "tags": ["pension", "elderly", "senior citizen", "retirement"],
             }
         }
+    }
 
 
 # Response models

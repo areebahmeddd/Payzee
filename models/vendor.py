@@ -9,7 +9,6 @@ class Vendor:
         name: str,
         password: str,
         email: Optional[str] = None,
-        image_url: Optional[str] = None,
         gender: Optional[str] = None,
         business_name: Optional[str] = None,
         business_id: Optional[str] = None,
@@ -17,6 +16,7 @@ class Vendor:
         occupation: Optional[str] = None,
         phone: Optional[str] = None,
         address: Optional[str] = None,
+        image_url: Optional[str] = None,
     ):
         self.account_info: Dict[str, Any] = {
             "id": str(uuid.uuid4()),

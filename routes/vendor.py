@@ -59,7 +59,6 @@ async def delete_vendor_profile(vendor_id: str):
 
     # Delete the vendor
     delete_vendor(vendor_id)
-
     return JSONResponse(content={"message": "Vendor profile deleted successfully"})
 
 

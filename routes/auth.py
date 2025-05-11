@@ -71,7 +71,6 @@ async def vendor_signup(data: VendorSignup) -> JSONResponse:
         name=data.name,
         password=data.password,
         email=data.email,
-        image_url=data.image_url,
         gender=data.gender,
         business_name=data.business_name,
         business_id=data.business_id,
@@ -79,6 +78,7 @@ async def vendor_signup(data: VendorSignup) -> JSONResponse:
         occupation=data.occupation,
         phone=data.phone,
         address=data.address,
+        image_url=data.image_url,
     )
 
     vendor_dict = vendor.to_dict()

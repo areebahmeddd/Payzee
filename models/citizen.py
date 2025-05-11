@@ -78,6 +78,6 @@ class Citizen:
         citizen.account_info = data["account_info"]
         citizen.personal_info = data["personal_info"]
         citizen.wallet_info = data["wallet_info"]
-        citizen.scheme_info = data.get("scheme_info", [])
+        citizen.scheme_info = data["scheme_info"]
 
         return citizen
