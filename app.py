@@ -34,6 +34,7 @@ app.include_router(citizen_router, prefix="/api/v1/citizens", tags=["citizen"])
 app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["vendor"])
 app.include_router(government_router, prefix="/api/v1/governments", tags=["government"])
 app.include_router(chat_router, prefix="/api/v1/chatbot", tags=["chatbot"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["chatbot"])
 
 
 @app.get("/", response_class=HTMLResponse)

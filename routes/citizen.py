@@ -208,7 +208,7 @@ async def pay_vendor(citizen_id: str, payment: PaymentRequest) -> JSONResponse:
     )
 
 
-# View eligible schemes
+# View eligible schemes based on citizen profile
 @router.get("/{citizen_id}/eligible-schemes")
 async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
     citizen = get_citizen(citizen_id)
