@@ -10,8 +10,8 @@ on:
       - 'db/**'
       - 'models/**'
       - 'routes/**'
-    #   - 'utils/**'
-    #   - 'tests/**'
+      # - 'utils/**'
+      # - 'tests/**'
       - 'app.py'
       - 'pyproject.toml'
       - 'poetry.lock'
@@ -31,7 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup python
+      - name: Install python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -51,8 +51,8 @@ jobs:
         continue-on-error: true
 
       - name: Build & push Docker image
-        uses: mr-smithers-excellent/docker-build-push@v6
         if: steps.tests.outcome == 'success'
+        uses: mr-smithers-excellent/docker-build-push@v6
         with:
           image: areebahmeddd/payzee-api
           tags: latest

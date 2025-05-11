@@ -1,101 +1,99 @@
 services:
-    api:
-        build:
-            context: .
-            dockerfile: docker/prod.Dockerfile
-        ports:
-            - "8000:8000"
-        # env_file:
-        #     - .env
-        restart: unless-stopped
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-        volumes:
-            - api_data:/app/data
-        networks:
-            - payzee_network
-        depends_on:
-            redis:
-                condition: service_healthy
-        environment:
-            - REDIS_HOST=redis
-            - REDIS_PORT=6379
+  api:
+    build:
+      context: .
+      dockerfile: docker/prod.Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - api_data:/app/data
+    networks:
+      - payzee_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
-    redis:
-        image: redis:latest
-        restart: unless-stopped
-        ports:
-            - "6379:6379"
-        volumes:
-            - redis_data:/data
-        networks:
-            - payzee_network
-        healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        command: redis-server --save 60 1 --loglevel warning
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - payzee_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: redis-server --save 60 1 --loglevel warning
 
-    redisinsight:
-        image: redis/redisinsight:latest
-        restart: unless-stopped
-        ports:
-            - 5540:5540
-        volumes:
-            - redisinsight_data:/db
-        networks:
-            - payzee_network
-        depends_on:
-            - redis
+  redisinsight:
+    image: redis/redisinsight:latest
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/db
+    networks:
+      - payzee_network
+    depends_on:
+      - redis
 
-    # prometheus:
-    #     image: prom/prometheus
-    #     ports:
-    #         - "9090:9090"
-    #     volumes:
-    #         - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-    #         - prometheus_data:/prometheus
-    #     command:
-    #         - "--config.file=/etc/prometheus/prometheus.yml"
-    #         - "--storage.tsdb.path=/prometheus"
-    #         - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-    #         - "--web.console.templates=/usr/share/prometheus/consoles"
-    #     networks:
-    #         - payzee_network
-    #     restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - "--config.file=/etc/prometheus/prometheus.yml"
+  #     - "--storage.tsdb.path=/prometheus"
+  #     - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+  #     - "--web.console.templates=/usr/share/prometheus/consoles"
+  #   networks:
+  #     - payzee_network
+  #   restart: unless-stopped
 
-    # grafana:
-    #     image: grafana/grafana
-    #     ports:
-    #         - "3000:3000"
-    #     volumes:
-    #         - grafana_data:/var/lib/grafana
-    #     environment:
-    #         - GF_SECURITY_ADMIN_USER=admin
-    #         - GF_SECURITY_ADMIN_PASSWORD=admin@123
-    #         - GF_USERS_ALLOW_SIGN_UP=false
-    #     networks:
-    #         - payzee_network
-    #     depends_on:
-    #         - prometheus
-    #     restart: unless-stopped
+  # grafana:
+  #   image: grafana/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin@123
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #   networks:
+  #     - payzee_network
+  #   depends_on:
+  #     - prometheus
+  #   restart: unless-stopped
 
 volumes:
-    api_data:
-        driver: local
-    redis_data:
-        driver: local
-    redisinsight_data:
-        driver: local
-    prometheus_data:
-        driver: local
-    grafana_data:
-        driver: local
+  api_data:
+    driver: local
+  redis_data:
+    driver: local
+  redisinsight_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
 networks:
-    payzee_network:
-        driver: bridge
+  payzee_network:
+    driver: bridge
