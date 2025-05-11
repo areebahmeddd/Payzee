@@ -8,6 +8,7 @@ from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
 from routes.government import router as government_router
+from routes.chat import router as chat_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -32,6 +33,7 @@ app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(citizen_router, prefix="/api/v1/citizens", tags=["citizen"])
 app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["vendor"])
 app.include_router(government_router, prefix="/api/v1/governments", tags=["government"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["chatbot"])
 
 
 @app.get("/", response_class=HTMLResponse)

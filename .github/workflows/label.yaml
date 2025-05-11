@@ -3,6 +3,10 @@ name: Pull Request Labeler
 on:
   - pull_request_target
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   triage:
     runs-on: ubuntu-latest
