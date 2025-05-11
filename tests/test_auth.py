@@ -1,137 +1,232 @@
-from fastapi import status
 from unittest.mock import patch
 
 
 class TestAuthRoutes:
-    @patch("routes.auth.query_citizens_by_field")
-    @patch("routes.auth.save_citizen")
-    def test_citizen_signup(self, mock_save_citizen, mock_query, client):
-        # Configure mock to return empty list (no existing user)
-        mock_query.return_value = []
+    """Test cases for authentication routes"""
 
-        # Test data
-        signup_data = {
-            "name": "Test User",
-            "email": "test@example.com",
-            "password": "password123",
-            "phone": "1234567890",
-            "address": "123 Test St",
-            "id_type": "Aadhaar",
-            "id_number": "123456789012",
-        }
-
-        # Send request to the endpoint
-        response = client.post("/api/v1/auth/signup/citizen", json=signup_data)
-
-        # Check response
-        assert response.status_code == status.HTTP_200_OK
-        assert "user_id" in response.json()
-        assert response.json()["user_type"] == "citizen"
-        assert "message" in response.json()
-
-        # Verify save_citizen was called
-        mock_save_citizen.assert_called_once()
-
-    @patch("routes.auth.query_citizens_by_field")
-    def test_citizen_signup_existing_email(self, mock_query, client):
-        # Configure mock to return a user (email already exists)
-        mock_query.return_value = [{"account_info": {"email": "existing@example.com"}}]
-
-        # Test data
-        signup_data = {
-            "name": "Test User",
-            "email": "existing@example.com",
-            "password": "password123",
-        }
-
-        # Send request to the endpoint
-        response = client.post("/api/v1/auth/signup/citizen", json=signup_data)
-
-        # Check response
-        assert response.status_code == status.HTTP_409_CONFLICT
-        assert "detail" in response.json()
-
-    @patch("routes.auth.query_vendors_by_field")
-    @patch("routes.auth.save_vendor")
-    def test_vendor_signup(self, mock_save_vendor, mock_query, client):
-        # Configure mock to return empty list (no existing user)
-        mock_query.return_value = []
-
-        # Test data
-        signup_data = {
-            "name": "Vendor Name",
-            "email": "vendor@example.com",
-            "password": "password123",
-            "business_name": "Test Business",
-            "license_type": "private",
-        }
-
-        # Send request to the endpoint
-        response = client.post("/api/v1/auth/signup/vendor", json=signup_data)
-
-        # Check response
-        assert response.status_code == status.HTTP_200_OK
-        assert "user_id" in response.json()
-        assert response.json()["user_type"] == "vendor"
-
-        # Verify save_vendor was called
-        mock_save_vendor.assert_called_once()
-
-    @patch("routes.auth.query_citizens_by_field")
-    @patch("routes.auth.query_vendors_by_field")
-    @patch("routes.auth.query_governments_by_field")
-    def test_login_success_citizen(
-        self, mock_query_govts, mock_query_vendors, mock_query_citizens, client
-    ):
-        # Only citizens query returns a result
-        mock_query_citizens.return_value = [
-            {
-                "account_info": {
-                    "id": "test-id-123",
-                    "email": "user@example.com",
+    def test_citizen_signup_success(self, client, mock_redis):
+        """Test successful citizen signup"""
+        # Mock the query and save functions
+        with (
+            patch("routes.auth.query_citizens_by_field", return_value=[]) as mock_query,
+            patch("routes.auth.save_citizen", return_value="test-id") as mock_save,
+        ):
+            # Send signup request
+            response = client.post(
+                "/api/v1/auth/signup/citizen",
+                json={
+                    "name": "John Doe",
                     "password": "password123",
-                }
-            }
-        ]
-        mock_query_vendors.return_value = []
-        mock_query_govts.return_value = []
+                    "email": "john@example.com",
+                    "phone": "9876543210",
+                    "id_type": "Aadhaar",
+                    "id_number": "123456789012",
+                    "address": "123 Main St",
+                    "dob": "1990-01-01",
+                    "gender": "male",
+                    "occupation": "Engineer",
+                    "caste": "General",
+                    "annual_income": 800000,
+                },
+            )
 
-        # Login data
-        login_data = {"email": "user@example.com", "password": "password123"}
+            # Verify response
+            assert response.status_code == 200
+            assert "message" in response.json()
+            assert "user_id" in response.json()
+            assert response.json()["user_type"] == "citizen"
 
-        # Send login request
-        response = client.post("/api/v1/auth/login", json=login_data)
+            # Verify mocks were called
+            mock_query.assert_called_once()
+            mock_save.assert_called_once()
 
-        # Check response
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["user_id"] == "test-id-123"
-        assert response.json()["user_type"] == "citizen"
+    def test_citizen_signup_email_exists(self, client):
+        """Test citizen signup with existing email"""
+        # Mock query to return existing user
+        with patch(
+            "routes.auth.query_citizens_by_field", return_value=[{"id": "existing-id"}]
+        ):
+            # Send signup request with existing email
+            response = client.post(
+                "/api/v1/auth/signup/citizen",
+                json={
+                    "name": "John Doe",
+                    "password": "password123",
+                    "email": "existing@example.com",
+                    "id_number": "123456789012",
+                },
+            )
 
-    @patch("routes.auth.query_citizens_by_field")
-    @patch("routes.auth.query_vendors_by_field")
-    @patch("routes.auth.query_governments_by_field")
-    def test_login_invalid_credentials(
-        self, mock_query_govts, mock_query_vendors, mock_query_citizens, client
-    ):
-        # Queries return results but with wrong password
-        mock_query_citizens.return_value = [
-            {
-                "account_info": {
-                    "id": "test-id-123",
-                    "email": "user@example.com",
-                    "password": "correct_password",
-                }
-            }
-        ]
-        mock_query_vendors.return_value = []
-        mock_query_govts.return_value = []
+            # Verify response is conflict
+            assert response.status_code == 409
+            assert "Email already registered" in response.json()["detail"]
 
-        # Login with wrong password
-        login_data = {"email": "user@example.com", "password": "wrong_password"}
+    def test_vendor_signup_success(self, client):
+        """Test successful vendor signup"""
+        # Mock the query and save functions
+        with (
+            patch("routes.auth.query_vendors_by_field", return_value=[]) as mock_query,
+            patch(
+                "routes.auth.save_vendor", return_value="test-vendor-id"
+            ) as mock_save,
+        ):
+            # Send signup request
+            response = client.post(
+                "/api/v1/auth/signup/vendor",
+                json={
+                    "name": "Store Owner",
+                    "password": "password123",
+                    "email": "store@example.com",
+                    "business_name": "Test Store",
+                    "business_id": "STORE123",
+                    "license_type": "Retail",
+                    "phone": "9876543210",
+                    "address": "456 Shop Street",
+                },
+            )
 
-        # Send login request
-        response = client.post("/api/v1/auth/login", json=login_data)
+            # Verify response
+            assert response.status_code == 200
+            assert "message" in response.json()
+            assert "user_id" in response.json()
+            assert response.json()["user_type"] == "vendor"
 
-        # Check response
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "detail" in response.json()
+            # Verify mocks were called
+            mock_query.assert_called_once()
+            mock_save.assert_called_once()
+
+    def test_government_signup_success(self, client):
+        """Test successful government signup"""
+        # Mock the query and save functions
+        with (
+            patch(
+                "routes.auth.query_governments_by_field", return_value=[]
+            ) as mock_query,
+            patch(
+                "routes.auth.save_government", return_value="test-govt-id"
+            ) as mock_save,
+        ):
+            # Send signup request
+            response = client.post(
+                "/api/v1/auth/signup/government",
+                json={
+                    "name": "Local Government",
+                    "password": "password123",
+                    "email": "govt@example.com",
+                    "jurisdiction": "Test District",
+                    "govt_id": "GOVT123",
+                },
+            )
+
+            # Verify response
+            assert response.status_code == 200
+            assert "message" in response.json()
+            assert "user_id" in response.json()
+            assert response.json()["user_type"] == "government"
+
+            # Verify mocks were called
+            mock_query.assert_called_once()
+            mock_save.assert_called_once()
+
+    def test_login_citizen_success(self, client, mock_citizen_data):
+        """Test successful citizen login"""
+        # Mock query to return citizen
+        with patch(
+            "routes.auth.query_citizens_by_field", return_value=[mock_citizen_data]
+        ) as mock_query:
+            # Send login request
+            response = client.post(
+                "/api/v1/auth/login",
+                json={"id_number": "123456789012", "password": "password123"},
+            )
+
+            # Verify response
+            assert response.status_code == 200
+            assert response.json()["message"] == "Login successful"
+            assert response.json()["user_type"] == "citizen"
+
+            # Verify mock was called
+            mock_query.assert_called_once()
+
+    def test_login_vendor_success(self, client, mock_vendor_data):
+        """Test successful vendor login"""
+        # Mock query to return no citizens but a vendor
+        with (
+            patch(
+                "routes.auth.query_citizens_by_field", return_value=[]
+            ) as mock_citizen_query,
+            patch(
+                "routes.auth.query_vendors_by_field", return_value=[mock_vendor_data]
+            ) as mock_vendor_query,
+        ):
+            # Send login request
+            response = client.post(
+                "/api/v1/auth/login",
+                json={"id_number": "TEST123456", "password": "password123"},
+            )
+
+            # Verify response
+            assert response.status_code == 200
+            assert response.json()["message"] == "Login successful"
+            assert response.json()["user_type"] == "vendor"
+
+            # Verify mocks were called
+            mock_citizen_query.assert_called_once()
+            mock_vendor_query.assert_called_once()
+
+    def test_login_government_success(self, client, mock_government_data):
+        """Test successful government login"""
+        # Mock query to return no citizens or vendors but a government
+        with (
+            patch(
+                "routes.auth.query_citizens_by_field", return_value=[]
+            ) as mock_citizen_query,
+            patch(
+                "routes.auth.query_vendors_by_field", return_value=[]
+            ) as mock_vendor_query,
+            patch(
+                "routes.auth.query_governments_by_field",
+                return_value=[mock_government_data],
+            ) as mock_govt_query,
+        ):
+            # Send login request
+            response = client.post(
+                "/api/v1/auth/login",
+                json={"id_number": "GOVT123456", "password": "password123"},
+            )
+
+            # Verify response
+            assert response.status_code == 200
+            assert response.json()["message"] == "Login successful"
+            assert response.json()["user_type"] == "government"
+
+            # Verify mocks were called
+            mock_citizen_query.assert_called_once()
+            mock_vendor_query.assert_called_once()
+            mock_govt_query.assert_called_once()
+
+    def test_login_invalid_credentials(self, client):
+        """Test login with invalid credentials"""
+        # Mock query to return no users
+        with (
+            patch("routes.auth.query_citizens_by_field", return_value=[]),
+            patch("routes.auth.query_vendors_by_field", return_value=[]),
+            patch("routes.auth.query_governments_by_field", return_value=[]),
+        ):
+            # Send login request with invalid credentials
+            response = client.post(
+                "/api/v1/auth/login",
+                json={"id_number": "invalid", "password": "wrongpassword"},
+            )
+
+            # Verify response is unauthorized
+            assert response.status_code == 401
+            assert "Invalid ID number or password" in response.json()["detail"]
+
+    def test_logout(self, client):
+        """Test logout endpoint"""
+        response = client.post("/api/v1/auth/logout")
+
+        # Verify response
+        assert response.status_code == 200
+        assert response.json()["message"] == "Logged out successfully"
