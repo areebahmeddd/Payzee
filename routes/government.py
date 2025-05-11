@@ -96,7 +96,7 @@ async def get_all_citizen_profiles(government_id: str):
 
 # Get specific citizen by ID
 @router.get("/{government_id}/citizens/{citizen_id}")
-async def get_specific_scheme_citizen(government_id: str, citizen_id: str):
+async def get_specific_citizen(government_id: str, citizen_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -129,7 +129,7 @@ async def get_all_vendor_profiles(government_id: str):
 
 # Get specific vendor by ID
 @router.get("/{government_id}/vendors/{vendor_id}")
-async def get_specific_scheme_vendor(government_id: str, vendor_id: str):
+async def get_specific_vendor(government_id: str, vendor_id: str):
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
