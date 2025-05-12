@@ -2,93 +2,13 @@
 
 echo "Seeding test data into Redis..."
 echo "==============================="
-echo ""
 
-check_docker() {
-    echo "Checking Docker status..."
-
-    if command -v docker &> /dev/null; then
-        docker info > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "Docker is running!"
-            echo ""
-            return 0
-        else
-            echo "Docker is installed but not running. Please start Docker."
-            return 1
-        fi
-    else
-        echo "Docker not installed. Please install Docker."
-        return 1
-    fi
-}
-
-check_services() {
-    echo "Checking Docker Compose services..."
-
-    if ! command -v docker &> /dev/null; then
-        echo "Docker not found. Cannot check services."
-        return 1
-    fi
-
-    if [ ! -f "../docker-compose.yaml" ]; then
-        echo "docker-compose.yaml not found in parent directory!"
-        return 1
-    fi
-
-    CONTAINERS_RUNNING=$(docker ps --filter "name=payzee" --format "{{.Names}}" | wc -l)
-
-    if [ "$CONTAINERS_RUNNING" -eq 0 ]; then
-        echo "Starting Payzee containers..."
-
-        cd ..
-        export COMPOSE_BAKE=true
-        docker compose up -d
-
-        if [ $? -ne 0 ]; then
-            echo "Failed to start Docker Compose services."
-            return 1
-        fi
-
-        echo "Services started successfully."
-        echo "Waiting for services to initialize..."
-        sleep 10
-    else
-        echo "All services are running!"
-        echo ""
-    fi
-
-    return 0
-}
-
-check_redis() {
-    echo "Checking Redis connection..."
-
-    MAX_RETRIES=5
-    RETRY_COUNT=0
-
-    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if docker exec payzee-redis-1 redis-cli PING | grep -q 'PONG'; then
-            echo "Redis connection successful!"
-            echo ""
-            return 0
-        else
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            echo "Retrying Redis connection ($RETRY_COUNT/$MAX_RETRIES)..."
-            sleep 3
-        fi
-    done
-
-    echo "Failed to connect to Redis after $MAX_RETRIES attempts."
-    return 1
-}
-
-seed_data() {
-    read -r -d '' SEED_SCRIPT << 'EOF'
+docker exec -i $(docker compose ps -q api) python - << 'EOF'
+import os
 import json
 import uuid
-import time
 import random
+import redis
 from datetime import datetime, timedelta
 
 CITIZENS_PREFIX = "citizen:"
@@ -102,14 +22,24 @@ SCHEMES_SET = "schemes"
 TRANSACTIONS_PREFIX = "txn:"
 TRANSACTIONS_SET = "transactions"
 
-import redis
-redis_client = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = int(os.environ.get("REDIS_PORT", 6379))
+redis_db = int(os.environ.get("REDIS_DB", 0))
+
+redis_client = redis.Redis(
+    host=redis_host, port=redis_port, db=redis_db, decode_responses=True
+)
+redis_client.ping()
+print(f"Connected to Redis at {redis_host}:{redis_port}")
+
 
 def serialize_for_db(data):
     return json.dumps(data)
 
+
 def deserialize_from_db(data):
     return json.loads(data)
+
 
 print("Clearing Redis database...")
 redis_client.flushall()
@@ -129,8 +59,8 @@ citizens = [
         "gender": "male",
         "occupation": "software engineer",
         "caste": "General",
-        "dob": "15-05-1990",
-        "annual_income": 1200000,
+        "dob": "1990-05-15",
+        "annual_income": 1400000,
         "image_url": "https://cdn.pixabay.com/photo/2023/11/17/21/43/trail-8395089_1280.jpg",
     },
     {
@@ -138,13 +68,13 @@ citizens = [
         "email": "shivansh@example.com",
         "password": "admin@123",
         "phone": "+91 8765432109",
-        "address": "15, MG Road, Bengaluru, Karnataka, 560001",
+        "address": "15, MG Road, Satara, Maharashtra, 415001",
         "id_type": "Aadhaar",
         "id_number": "234567890123",
         "gender": "male",
         "occupation": "farmer",
         "caste": "OBC",
-        "dob": "22-08-1985",
+        "dob": "1985-08-22",
         "annual_income": 80000,
         "image_url": "https://cdn.pixabay.com/photo/2019/10/02/17/19/mountains-4521455_1280.jpg",
     },
@@ -159,40 +89,10 @@ citizens = [
         "gender": "female",
         "occupation": "student",
         "caste": "SC",
-        "dob": "10-12-1998",
+        "dob": "1998-12-10",
         "annual_income": 150000,
         "image_url": "https://cdn.pixabay.com/photo/2022/05/14/15/49/mountain-7195958_1280.jpg",
     },
-    {
-        "name": "Rajni Singh",
-        "email": "rajni@example.com",
-        "password": "admin@123",
-        "phone": "+91 9988776655",
-        "address": "22, Andheri East, Mumbai, Maharashtra, 400069",
-        "id_type": "Aadhaar",
-        "id_number": "456789012345",
-        "gender": "female",
-        "occupation": "farmer",
-        "caste": "OBC",
-        "dob": "03-06-1982",
-        "annual_income": 75000,
-        "image_url": "https://cdn.pixabay.com/photo/2020/04/28/13/21/landscape-5104510_1280.jpg",
-    },
-    {
-        "name": "Manoj Kumar",
-        "email": "manoj@example.com",
-        "password": "admin@123",
-        "phone": "+91 9876543211",
-        "address": "45, Jayanagar, Bengaluru, Karnataka, 560041",
-        "id_type": "Aadhaar",
-        "id_number": "567890123456",
-        "gender": "male",
-        "occupation": "student",
-        "caste": "SC",
-        "dob": "25-09-1999",
-        "annual_income": 120000,
-        "image_url": "https://cdn.pixabay.com/photo/2023/05/28/09/24/south-tyrol-8023224_1280.jpg",
-    }
 ]
 
 citizen_ids = []
@@ -205,11 +105,11 @@ for citizen_data in citizens:
             "id": citizen_id,
             "name": citizen_data["name"],
             "email": citizen_data["email"],
-            "password": "admin@123",
+            "password": citizen_data["password"],
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "citizen",
-            "image_url": citizen_data["image_url"]
+            "image_url": citizen_data["image_url"],
         },
         "personal_info": {
             "phone": citizen_data["phone"],
@@ -220,12 +120,16 @@ for citizen_data in citizens:
             "gender": citizen_data["gender"],
             "occupation": citizen_data["occupation"],
             "caste": citizen_data["caste"],
-            "annual_income": citizen_data["annual_income"]
+            "annual_income": citizen_data["annual_income"],
         },
         "wallet_info": {
             "govt_wallet": {"balance": random.randint(500, 5000), "transactions": []},
-            "personal_wallet": {"balance": random.randint(500, 5000), "transactions": []}
-        }
+            "personal_wallet": {
+                "balance": random.randint(5000, 10000),
+                "transactions": [],
+            },
+        },
+        "scheme_info": [],
     }
 
     redis_client.set(f"{CITIZENS_PREFIX}{citizen_id}", serialize_for_db(citizen))
@@ -273,7 +177,7 @@ vendors = [
         "gender": "male",
         "occupation": "retail business",
         "image_url": "https://cdn.pixabay.com/photo/2024/09/03/18/03/sand-9019849_1280.jpg",
-    }
+    },
 ]
 
 vendor_ids = []
@@ -286,7 +190,7 @@ for vendor_data in vendors:
             "id": vendor_id,
             "name": vendor_data["name"],
             "email": vendor_data["email"],
-            "password": "admin@123",
+            "password": vendor_data["password"],
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "vendor",
@@ -299,12 +203,9 @@ for vendor_data in vendors:
             "license_type": vendor_data["license_type"],
             "occupation": vendor_data["occupation"],
             "phone": vendor_data["phone"],
-            "address": vendor_data["address"]
+            "address": vendor_data["address"],
         },
-        "wallet_info": {
-            "balance": random.randint(5000, 20000),
-            "transactions": []
-        }
+        "wallet_info": {"balance": random.randint(5000, 20000), "transactions": []},
     }
 
     redis_client.set(f"{VENDORS_PREFIX}{vendor_id}", serialize_for_db(vendor))
@@ -320,7 +221,7 @@ governments = [
         "password": "admin@123",
         "jurisdiction": "Central",
         "govt_id": "DOPT0001",
-        "image_url": "https://cdn.pixabay.com/photo/2016/10/24/22/43/dubai-1767540_1280.jpg"
+        "image_url": "https://cdn.pixabay.com/photo/2016/10/24/22/43/dubai-1767540_1280.jpg",
     },
     {
         "name": "Karnataka Rural Development",
@@ -328,7 +229,7 @@ governments = [
         "password": "admin@123",
         "jurisdiction": "State",
         "govt_id": "KARD0002",
-        "image_url": "https://cdn.pixabay.com/photo/2023/06/21/16/26/warnemunde-8079731_1280.jpg"
+        "image_url": "https://cdn.pixabay.com/photo/2023/06/21/16/26/warnemunde-8079731_1280.jpg",
     },
     {
         "name": "Delhi Social Welfare Department",
@@ -336,8 +237,8 @@ governments = [
         "password": "admin@123",
         "jurisdiction": "State",
         "govt_id": "DELSW003",
-        "image_url": "https://cdn.pixabay.com/photo/2024/02/23/21/25/landscape-8592826_1280.jpg"
-    }
+        "image_url": "https://cdn.pixabay.com/photo/2024/02/23/21/25/landscape-8592826_1280.jpg",
+    },
 ]
 
 govt_ids = []
@@ -350,7 +251,7 @@ for govt_data in governments:
             "id": govt_id,
             "name": govt_data["name"],
             "email": govt_data["email"],
-            "password": "admin@123",
+            "password": govt_data["password"],
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "government",
@@ -361,8 +262,8 @@ for govt_data in governments:
         "wallet_info": {
             "balance": random.randint(1000000, 10000000),
             "schemes": [],
-            "transactions": []
-        }
+            "transactions": [],
+        },
     }
 
     redis_client.set(f"{GOVERNMENTS_PREFIX}{govt_id}", serialize_for_db(govt))
@@ -384,12 +285,12 @@ schemes = [
             "max_age": 65,
             "gender": "any",
             "state": "Maharashtra",
-            "district": "Mumbai",
-            "city": "Mumbai",
+            "district": "all",
+            "city": "all",
             "caste": "OBC",
-            "annual_income": 100000
+            "annual_income": 100000,
         },
-        "tags": ["agriculture", "farmer-welfare", "income-support"]
+        "tags": ["agriculture", "farmer-welfare", "income-support"],
     },
     {
         "name": "Vidyarthi Shiksha Yojana",
@@ -406,9 +307,9 @@ schemes = [
             "district": "Bangalore Rural",
             "city": "Doddaballapur",
             "caste": "SC",
-            "annual_income": 300000
+            "annual_income": 300000,
         },
-        "tags": ["education", "scholarship", "rural"]
+        "tags": ["education", "scholarship", "rural"],
     },
     {
         "name": "Delhi Swasthya Bima Yojana",
@@ -425,9 +326,9 @@ schemes = [
             "district": "all",
             "city": "all",
             "caste": "all",
-            "annual_income": 250000
+            "annual_income": 250000,
         },
-        "tags": ["health", "insurance", "poverty"]
+        "tags": ["health", "insurance", "poverty"],
     },
     {
         "name": "Maharashtra Women Farmer Support",
@@ -444,9 +345,9 @@ schemes = [
             "district": "all",
             "city": "all",
             "caste": "all",
-            "annual_income": 150000
+            "annual_income": 150000,
         },
-        "tags": ["agriculture", "women-empowerment", "rural-development"]
+        "tags": ["agriculture", "women-empowerment", "rural-development"],
     },
     {
         "name": "Tech Talent Scholarship",
@@ -462,11 +363,11 @@ schemes = [
             "state": "all",
             "district": "all",
             "city": "all",
-            "caste": "all",
-            "annual_income": 1500000
+            "caste": "General",
+            "annual_income": 1500000,
         },
-        "tags": ["technology", "education", "career-development"]
-    }
+        "tags": ["technology", "education", "career-development"],
+    },
 ]
 
 scheme_ids = []
@@ -476,47 +377,63 @@ for scheme_data in schemes:
 
     eligible_beneficiaries = []
 
-    if scheme_data["name"] == "PM Kisan Samman Nidhi":
-        for cid in citizen_ids:
-            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            if ("Maharashtra" in citizen["personal_info"]["address"] and
-                citizen["personal_info"]["occupation"] == "farmer" and
-                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"] and
-                citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"]):
-                eligible_beneficiaries.append(cid)
+    for cid in citizen_ids:
+        citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
+        personal_info = citizen["personal_info"]
 
-                if "scheme_info" not in citizen:
-                    citizen["scheme_info"] = []
-                citizen["scheme_info"].append(scheme_id)
-                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
+        eligible = True
 
-    elif scheme_data["name"] == "Vidyarthi Shiksha Yojana":
-        for cid in citizen_ids:
-            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            if ("Karnataka" in citizen["personal_info"]["address"] and
-                citizen["personal_info"]["occupation"] == "student" and
-                citizen["personal_info"]["gender"] == "female" and
-                citizen["personal_info"]["caste"] == scheme_data["eligibility_criteria"]["caste"] and
-                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
-                eligible_beneficiaries.append(cid)
+        if (
+            scheme_data["eligibility_criteria"]["occupation"] != "any"
+            and scheme_data["eligibility_criteria"]["occupation"]
+            != personal_info["occupation"]
+        ):
+            eligible = False
 
-                if "scheme_info" not in citizen:
-                    citizen["scheme_info"] = []
-                citizen["scheme_info"].append(scheme_id)
-                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
+        if (
+            scheme_data["eligibility_criteria"]["gender"] != "any"
+            and scheme_data["eligibility_criteria"]["gender"] != personal_info["gender"]
+        ):
+            eligible = False
 
-    elif scheme_data["name"] == "Delhi Swasthya Bima Yojana":
-        for cid in citizen_ids:
-            citizen = deserialize_from_db(redis_client.get(f"{CITIZENS_PREFIX}{cid}"))
-            if ("Delhi" in citizen["personal_info"]["address"] and
-                citizen["personal_info"]["annual_income"] <= scheme_data["eligibility_criteria"]["annual_income"]):
-                eligible_beneficiaries.append(cid)
+        if (
+            scheme_data["eligibility_criteria"]["caste"] != "all"
+            and scheme_data["eligibility_criteria"]["caste"] != personal_info["caste"]
+        ):
+            eligible = False
 
-                if "scheme_info" not in citizen:
-                    citizen["scheme_info"] = []
-                citizen["scheme_info"].append(scheme_id)
-                redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
-                eligible_beneficiaries.append(cid)
+        if (
+            personal_info["annual_income"]
+            > scheme_data["eligibility_criteria"]["annual_income"]
+        ):
+            eligible = False
+
+        dob_str = personal_info["dob"]
+        year, month, day = map(int, dob_str.split("-"))
+        dob = datetime(year, month, day)
+        today = datetime.now()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+        if (
+            age < scheme_data["eligibility_criteria"]["min_age"]
+            or age > scheme_data["eligibility_criteria"]["max_age"]
+        ):
+            eligible = False
+
+        if (
+            scheme_data["eligibility_criteria"]["state"] != "all"
+            and scheme_data["eligibility_criteria"]["state"]
+            not in personal_info["address"]
+        ):
+            eligible = False
+
+        if eligible:
+            eligible_beneficiaries.append(cid)
+
+            if "scheme_info" not in citizen:
+                citizen["scheme_info"] = []
+            citizen["scheme_info"].append(scheme_id)
+            redis_client.set(f"{CITIZENS_PREFIX}{cid}", serialize_for_db(citizen))
 
     scheme = {
         "id": scheme_id,
@@ -524,12 +441,12 @@ for scheme_data in schemes:
         "description": scheme_data["description"],
         "govt_id": scheme_data["govt_id"],
         "amount": scheme_data["amount"],
+        "status": scheme_data["status"],
         "eligibility_criteria": scheme_data["eligibility_criteria"],
         "tags": scheme_data["tags"],
+        "beneficiaries": eligible_beneficiaries,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat(),
-        "status": scheme_data.get("status", "active"),
-        "beneficiaries": eligible_beneficiaries
     }
 
     redis_client.set(f"{SCHEMES_PREFIX}{scheme_id}", serialize_for_db(scheme))
@@ -539,10 +456,12 @@ for scheme_data in schemes:
     govt_data = redis_client.get(govt_key)
     if govt_data:
         govt_dict = deserialize_from_db(govt_data)
-        govt_dict['wallet_info']['schemes'].append(scheme_id)
+        govt_dict["wallet_info"]["schemes"].append(scheme_id)
         redis_client.set(govt_key, serialize_for_db(govt_dict))
 
-    print(f"Added scheme: {scheme_data['name']} with {len(eligible_beneficiaries)} beneficiaries")
+    print(
+        f"Added scheme: {scheme_data['name']} with {len(eligible_beneficiaries)} beneficiaries"
+    )
 
 print("\nCreating transactions...")
 transactions = []
@@ -557,56 +476,55 @@ for scheme_id in scheme_ids:
 
     beneficiaries = scheme["beneficiaries"]
     if not beneficiaries:
-        beneficiaries = random.sample(citizen_ids, min(random.randint(1, 2), len(citizen_ids)))
+        beneficiaries = random.sample(citizen_ids, min(1, len(citizen_ids)))
 
     for citizen_id in beneficiaries:
-        if transaction_count >= 5:
-            break
-
         txn_id = str(uuid.uuid4())
-
         citizen_data = redis_client.get(f"{CITIZENS_PREFIX}{citizen_id}")
         citizen = deserialize_from_db(citizen_data)
 
         transaction = {
             "id": txn_id,
-            "from_id": scheme['govt_id'],
+            "from_id": scheme["govt_id"],
             "to_id": citizen_id,
-            "amount": scheme['amount'],
+            "amount": scheme["amount"],
             "tx_type": "government-to-citizen",
-            "scheme_id": scheme['id'],
+            "scheme_id": scheme["id"],
             "description": f"Disbursement for {scheme['name']}",
-            "timestamp": (datetime.now() - timedelta(days=random.randint(5, 30))).isoformat(),
-            "status": "completed"
+            "timestamp": (
+                datetime.now() - timedelta(days=random.randint(5, 30))
+            ).isoformat(),
+            "status": "completed",
         }
 
-        redis_client.set(f"{TRANSACTIONS_PREFIX}{txn_id}", serialize_for_db(transaction))
+        redis_client.set(
+            f"{TRANSACTIONS_PREFIX}{txn_id}", serialize_for_db(transaction)
+        )
         redis_client.sadd(TRANSACTIONS_SET, txn_id)
 
-        citizen['wallet_info']['govt_wallet']['balance'] += scheme['amount']
-        if 'transactions' not in citizen['wallet_info']['govt_wallet']:
-            citizen['wallet_info']['govt_wallet']['transactions'] = []
-        citizen['wallet_info']['govt_wallet']['transactions'].append(txn_id)
+        citizen["wallet_info"]["govt_wallet"]["balance"] += scheme["amount"]
+        if "transactions" not in citizen["wallet_info"]["govt_wallet"]:
+            citizen["wallet_info"]["govt_wallet"]["transactions"] = []
+
+        citizen["wallet_info"]["govt_wallet"]["transactions"].append(txn_id)
         redis_client.set(f"{CITIZENS_PREFIX}{citizen_id}", serialize_for_db(citizen))
 
-        govt['wallet_info']['balance'] -= scheme['amount']
-        if 'transactions' not in govt['wallet_info']:
-            govt['wallet_info']['transactions'] = []
-        govt['wallet_info']['transactions'].append(txn_id)
-        redis_client.set(f"{GOVERNMENTS_PREFIX}{scheme['govt_id']}", serialize_for_db(govt))
+        govt["wallet_info"]["balance"] -= scheme["amount"]
+        if "transactions" not in govt["wallet_info"]:
+            govt["wallet_info"]["transactions"] = []
 
-        print(f"Created disbursement: {govt['account_info']['name']} to {citizen['account_info']['name']} (₹{scheme['amount']})")
+        govt["wallet_info"]["transactions"].append(txn_id)
+        redis_client.set(
+            f"{GOVERNMENTS_PREFIX}{scheme['govt_id']}", serialize_for_db(govt)
+        )
+
+        print(
+            f"Created disbursement: {govt['account_info']['name']} to {citizen['account_info']['name']} (₹{scheme['amount']})"
+        )
         transaction_count += 1
 
-remaining_transactions = 10 - transaction_count
-transactions_per_citizen = max(1, remaining_transactions // len(citizen_ids))
-
 for i in range(len(citizen_ids)):
-    num_purchases = min(transactions_per_citizen, remaining_transactions)
-    for _ in range(num_purchases):
-        if transaction_count >= 10:
-            break
-
+    for _ in range(2):
         txn_id = str(uuid.uuid4())
         vendor_id = random.choice(vendor_ids)
 
@@ -616,10 +534,13 @@ for i in range(len(citizen_ids)):
         vendor_data = redis_client.get(f"{VENDORS_PREFIX}{vendor_id}")
         vendor = deserialize_from_db(vendor_data)
 
-        amount = random.randint(100, 1000)
-
-        if citizen['wallet_info']['personal_wallet']['balance'] < amount:
-            continue
+        amount = min(
+            random.randint(100, 1000),
+            citizen["wallet_info"]["personal_wallet"]["balance"],
+        )
+        if amount <= 0:
+            citizen["wallet_info"]["personal_wallet"]["balance"] = 1000
+            amount = 500
 
         transaction = {
             "id": txn_id,
@@ -629,59 +550,62 @@ for i in range(len(citizen_ids)):
             "tx_type": "citizen-to-vendor",
             "scheme_id": None,
             "description": f"Purchase at {vendor['business_info']['business_name']}",
-            "timestamp": (datetime.now() - timedelta(days=random.randint(1, 30))).isoformat(),
-            "status": "completed"
+            "timestamp": (
+                datetime.now() - timedelta(days=random.randint(1, 30))
+            ).isoformat(),
+            "status": "completed",
         }
 
-        redis_client.set(f"{TRANSACTIONS_PREFIX}{txn_id}", serialize_for_db(transaction))
+        redis_client.set(
+            f"{TRANSACTIONS_PREFIX}{txn_id}", serialize_for_db(transaction)
+        )
         redis_client.sadd(TRANSACTIONS_SET, txn_id)
 
-        citizen['wallet_info']['personal_wallet']['balance'] -= amount
-        if 'transactions' not in citizen['wallet_info']['personal_wallet']:
-            citizen['wallet_info']['personal_wallet']['transactions'] = []
-        citizen['wallet_info']['personal_wallet']['transactions'].append(txn_id)
-        redis_client.set(f"{CITIZENS_PREFIX}{citizen_ids[i]}", serialize_for_db(citizen))
+        citizen["wallet_info"]["personal_wallet"]["balance"] -= amount
+        if "transactions" not in citizen["wallet_info"]["personal_wallet"]:
+            citizen["wallet_info"]["personal_wallet"]["transactions"] = []
 
-        vendor['wallet_info']['balance'] += amount
-        if 'transactions' not in vendor['wallet_info']:
-            vendor['wallet_info']['transactions'] = []
-        vendor['wallet_info']['transactions'].append(txn_id)
+        citizen["wallet_info"]["personal_wallet"]["transactions"].append(txn_id)
+        redis_client.set(
+            f"{CITIZENS_PREFIX}{citizen_ids[i]}", serialize_for_db(citizen)
+        )
+
+        vendor["wallet_info"]["balance"] += amount
+        if "transactions" not in vendor["wallet_info"]:
+            vendor["wallet_info"]["transactions"] = []
+
+        vendor["wallet_info"]["transactions"].append(txn_id)
         redis_client.set(f"{VENDORS_PREFIX}{vendor_id}", serialize_for_db(vendor))
 
-        print(f"Created purchase: {citizen['account_info']['name']} to {vendor['business_info']['business_name']} (₹{amount})")
+        print(
+            f"Created purchase: {citizen['account_info']['name']} to {vendor['business_info']['business_name']} (₹{amount})"
+        )
         transaction_count += 1
 
-print("\nSeeding completed!")
+print(
+    f"\nSeeding completed!\n"
+    f"  - Citizens created: {len(citizen_ids)}\n"
+    f"  - Vendors created: {len(vendor_ids)}\n"
+    f"  - Government entities created: {len(govt_ids)}\n"
+    f"  - Schemes created: {len(scheme_ids)}\n"
+    f"  - Transactions created: {transaction_count}"
+)
 EOF
 
-    echo "Starting seeding process..."
-    echo ""
-    docker exec -i payzee-api-1 python3 -c "$SEED_SCRIPT"
-}
-
-main() {
-    check_docker || exit 1
-    check_services || exit 1
-    check_redis || exit 1
-    seed_data
-
-    echo ""
-    echo "Test accounts created successfully!"
-    echo "==================================="
-    echo "Citizens (login using ID Number):"
-    echo "  - Aadhar ID Number: 123456789012 / Password: admin@123 (Areeb Ahmed)"
-    echo "  - Aadhar ID Number: 234567890123 / Password: admin@123 (Shivansh Karan)"
-    echo "  - Aadhar ID Number: 345678901234 / Password: admin@123 (Alfiya Fatima)"
-    echo ""
-    echo "Vendors (login using Business ID):"
-    echo "  - Business ID: GSTIN22AAAAA1111Z / Password: admin@123 (Malhotra Grocery Mart)"
-    echo "  - Business ID: GSTIN09BBBBB2222Y / Password: admin@123 (MedPlus Pharmacy)"
-    echo "  - Business ID: GSTIN19CCCCC3333X / Password: admin@123 (Khan Kirana Store)"
-    echo ""
-    echo "Government Entities (login using Govt ID):"
-    echo "  - Govt ID: DOPT0001 / Password: admin@123 (Ministry of Social Justice)"
-    echo "  - Govt ID: KARD0002 / Password: admin@123 (Karnataka Rural Development)"
-    echo "  - Govt ID: DELSW003 / Password: admin@123 (Delhi Social Welfare Department)"
-}
-
-main
+echo ""
+echo "Test accounts created successfully!"
+echo "==================================="
+echo "Citizens:"
+echo "  - Aadhar ID Number: 123456789012 / Password: admin@123 (Areeb Ahmed)"
+echo "  - Aadhar ID Number: 234567890123 / Password: admin@123 (Shivansh Karan)"
+echo "  - Aadhar ID Number: 345678901234 / Password: admin@123 (Alfiya Fatima)"
+echo ""
+echo "Vendors:"
+echo "  - Business ID: GSTIN22AAAAA1111Z / Password: admin@123 (Malhotra Grocery Mart)"
+echo "  - Business ID: GSTIN09BBBBB2222Y / Password: admin@123 (MedPlus Pharmacy)"
+echo "  - Business ID: GSTIN19CCCCC3333X / Password: admin@123 (Khan Kirana Store)"
+echo ""
+echo "Government Entities:"
+echo "  - Govt ID: DOPT0001 / Password: admin@123 (Ministry of Social Justice)"
+echo "  - Govt ID: KARD0002 / Password: admin@123 (Karnataka Rural Development)"
+echo "  - Govt ID: DELSW003 / Password: admin@123 (Delhi Social Welfare Department)"
