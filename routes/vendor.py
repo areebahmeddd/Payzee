@@ -3,6 +3,7 @@ import qrcode
 import base64
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
+from typing import Dict, Any
 from models.api import MessageResponse
 from db import (
     get_vendor,
@@ -17,7 +18,7 @@ router = APIRouter()
 
 # Get vendor profile
 @router.get("/{vendor_id}")
-async def get_vendor_profile(vendor_id: str):
+async def get_vendor_profile(vendor_id: str) -> JSONResponse:
     # Check if vendor existss
     vendor = get_vendor(vendor_id)
     if not vendor:
@@ -32,7 +33,9 @@ async def get_vendor_profile(vendor_id: str):
 
 # Update vendor profile
 @router.put("/{vendor_id}", response_model=MessageResponse)
-async def update_vendor_profile(vendor_id: str, data: dict = Body(...)):
+async def update_vendor_profile(
+    vendor_id: str, data: Dict[str, Any] = Body(...)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
@@ -51,7 +54,7 @@ async def update_vendor_profile(vendor_id: str, data: dict = Body(...)):
 
 # Delete vendor profile
 @router.delete("/{vendor_id}", response_model=MessageResponse)
-async def delete_vendor_profile(vendor_id: str):
+async def delete_vendor_profile(vendor_id: str) -> JSONResponse:
     # Check if vendor exists
     vendor = get_vendor(vendor_id)
     if not vendor:
@@ -64,7 +67,7 @@ async def delete_vendor_profile(vendor_id: str):
 
 # Get wallet information
 @router.get("/{vendor_id}/wallet")
-async def get_wallet(vendor_id: str):
+async def get_wallet(vendor_id: str) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
@@ -74,7 +77,7 @@ async def get_wallet(vendor_id: str):
 
 # Generate QR code for payment
 @router.get("/{vendor_id}/generate-qr")
-async def generate_qr(vendor_id: str):
+async def generate_qr(vendor_id: str) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
@@ -102,7 +105,7 @@ async def generate_qr(vendor_id: str):
 
 # Get transaction history
 @router.get("/{vendor_id}/transactions")
-async def get_transactions(vendor_id: str):
+async def get_transactions(vendor_id: str) -> JSONResponse:
     # Find transactions where vendor is either sender or receiver
     from_transactions = query_transactions_by_field("from_id", vendor_id)
     to_transactions = query_transactions_by_field("to_id", vendor_id)
@@ -125,7 +128,7 @@ async def get_transactions(vendor_id: str):
 
 # Get transaction by ID
 @router.get("/{vendor_id}/transactions/{transaction_id}")
-async def get_specific_transaction(vendor_id: str, transaction_id: str):
+async def get_specific_transaction(vendor_id: str, transaction_id: str) -> JSONResponse:
     # Check if vendor exists
     vendor = get_vendor(vendor_id)
     if not vendor:
@@ -143,3 +146,11 @@ async def get_specific_transaction(vendor_id: str, transaction_id: str):
         )
 
     return JSONResponse(content=transaction)
+
+
+# Send vendor application to government
+@router.post("/{vendor_id}/application")
+async def send_application(
+    vendor_id: str, data: Dict[str, Any] = Body(...)
+) -> JSONResponse:
+    pass

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
+from typing import Dict, Any
 from models.api import SchemeCreate, MessageResponse
 from models.scheme import Scheme
 from db import (
@@ -24,7 +25,7 @@ router = APIRouter()
 
 # Get government profile
 @router.get("/{government_id}")
-async def get_government_profile(government_id: str):
+async def get_government_profile(government_id: str) -> JSONResponse:
     # Check if government exists
     govt = get_government(government_id)
     if not govt:
@@ -39,7 +40,9 @@ async def get_government_profile(government_id: str):
 
 # Update government profile
 @router.put("/{government_id}", response_model=MessageResponse)
-async def update_government_profile(government_id: str, data: dict = Body(...)):
+async def update_government_profile(
+    government_id: str, data: Dict[str, Any] = Body(...)
+) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -58,7 +61,7 @@ async def update_government_profile(government_id: str, data: dict = Body(...)):
 
 # Delete government profile
 @router.delete("/{government_id}", response_model=MessageResponse)
-async def delete_government_profile(government_id: str):
+async def delete_government_profile(government_id: str) -> JSONResponse:
     government = get_government(government_id)
     if not government:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -70,7 +73,7 @@ async def delete_government_profile(government_id: str):
 
 # Get wallet information
 @router.get("/{government_id}/wallet")
-async def get_wallet(government_id: str):
+async def get_wallet(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -80,7 +83,7 @@ async def get_wallet(government_id: str):
 
 # Get all citizens
 @router.get("/{government_id}/citizens")
-async def get_all_citizen_profiles(government_id: str):
+async def get_all_citizen_profiles(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -96,7 +99,7 @@ async def get_all_citizen_profiles(government_id: str):
 
 # Get specific citizen by ID
 @router.get("/{government_id}/citizens/{citizen_id}")
-async def get_specific_citizen(government_id: str, citizen_id: str):
+async def get_specific_citizen(government_id: str, citizen_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -113,7 +116,7 @@ async def get_specific_citizen(government_id: str, citizen_id: str):
 
 # Get all vendors
 @router.get("/{government_id}/vendors")
-async def get_all_vendor_profiles(government_id: str):
+async def get_all_vendor_profiles(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -129,7 +132,7 @@ async def get_all_vendor_profiles(government_id: str):
 
 # Get specific vendor by ID
 @router.get("/{government_id}/vendors/{vendor_id}")
-async def get_specific_vendor(government_id: str, vendor_id: str):
+async def get_specific_vendor(government_id: str, vendor_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -146,7 +149,7 @@ async def get_specific_vendor(government_id: str, vendor_id: str):
 
 # Get all transactions
 @router.get("/{government_id}/transactions")
-async def get_all_system_transactions(government_id: str):
+async def get_all_system_transactions(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -162,7 +165,9 @@ async def get_all_system_transactions(government_id: str):
 
 # Get specific transaction by ID
 @router.get("/{government_id}/transactions/{transaction_id}")
-async def get_specific_scheme_transaction(government_id: str, transaction_id: str):
+async def get_specific_transaction(
+    government_id: str, transaction_id: str
+) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -176,7 +181,7 @@ async def get_specific_scheme_transaction(government_id: str, transaction_id: st
 
 # Create a new scheme
 @router.post("/{government_id}/schemes", response_model=MessageResponse)
-async def create_scheme(government_id: str, scheme_data: SchemeCreate):
+async def create_scheme(government_id: str, scheme_data: SchemeCreate) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -205,7 +210,7 @@ async def create_scheme(government_id: str, scheme_data: SchemeCreate):
 
 # Get all schemes created by this government
 @router.get("/{government_id}/schemes")
-async def get_schemes(government_id: str):
+async def get_schemes(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -217,7 +222,7 @@ async def get_schemes(government_id: str):
 
 # Get a specific scheme by ID
 @router.get("/{government_id}/schemes/{scheme_id}")
-async def get_specific_scheme(government_id: str, scheme_id: str):
+async def get_specific_scheme(government_id: str, scheme_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -236,7 +241,9 @@ async def get_specific_scheme(government_id: str, scheme_id: str):
 
 # Update a specific scheme
 @router.put("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
-async def update_scheme(government_id: str, scheme_id: str, scheme_data: SchemeCreate):
+async def update_scheme(
+    government_id: str, scheme_id: str, scheme_data: SchemeCreate
+) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -276,7 +283,7 @@ async def update_scheme(government_id: str, scheme_id: str, scheme_data: SchemeC
 
 # Soft delete (mark as inactive) a specific scheme
 @router.delete("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
-async def soft_delete_scheme(government_id: str, scheme_id: str):
+async def soft_delete_scheme(government_id: str, scheme_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -301,7 +308,7 @@ async def soft_delete_scheme(government_id: str, scheme_id: str):
 
 # Get beneficiaries of a specific scheme
 @router.get("/{government_id}/schemes/{scheme_id}/beneficiaries")
-async def get_scheme_beneficiaries(government_id: str, scheme_id: str):
+async def get_scheme_beneficiaries(government_id: str, scheme_id: str) -> JSONResponse:
     # Check if the government exists
     govt = get_government(government_id)
     if not govt:

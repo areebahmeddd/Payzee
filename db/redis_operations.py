@@ -1,6 +1,6 @@
-from typing import Any, Dict, List, Optional
 from .redis_config import redis_client
 from utils.db_helpers import serialize_for_db, deserialize_from_db
+from typing import Any, Dict, List, Optional
 
 
 def get_document(collection_prefix: str, doc_id: str) -> Optional[Dict[str, Any]]:

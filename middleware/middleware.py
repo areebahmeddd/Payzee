@@ -2,7 +2,9 @@ import logging
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import Response, HTMLResponse, JSONResponse
+from starlette.exceptions import HTTPException
+from pathlib import Path
 from typing import Callable, Awaitable
 
 # Configure logging
@@ -36,25 +38,25 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# class ErrorHandlerMiddleware(BaseHTTPMiddleware):
-#     """Middleware to handle errors and exceptions."""
+class ErrorHandlerMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle errors and exceptions."""
 
-#     async def dispatch(self, request, call_next):
-#         try:
-#             response = await call_next(request)
+    async def dispatch(self, request, call_next):
+        try:
+            response = await call_next(request)
 
-#             # Handle 404 response status
-#             if response.status_code == 404:
-#                 html_file = Path("templates/404.html").read_text()
-#                 return HTMLResponse(content=html_file, status_code=404)
+            # Handle 404 response status
+            if response.status_code == 404:
+                html_file = Path("templates/404.html").read_text()
+                return HTMLResponse(content=html_file, status_code=404)
 
-#             return response
-#         except StarletteHTTPException as exc:
-#             if exc.status_code == 404:
-#                 return JSONResponse(status_code=404, content={"detail": "Not found"})
+            return response
+        except HTTPException as exc:
+            if exc.status_code == 404:
+                return JSONResponse(status_code=404, content={"detail": "Not found"})
 
-#             # If it's a different HTTP exception, re-raise it
-#             raise exc
+            # If it's a different HTTP exception, re-raise it
+            raise exc
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
