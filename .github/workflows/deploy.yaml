@@ -16,6 +16,7 @@ on:
       - 'pyproject.toml'
       - 'poetry.lock'
       - 'docker-compose.yaml'
+      - '.github/workflows/deploy.yaml'
   workflow_dispatch:
 
 concurrency:
