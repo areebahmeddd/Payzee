@@ -49,6 +49,8 @@ jobs:
         id: tests
         run: poetry run pytest tests/
         continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Build & push Docker image
         if: steps.tests.outcome == 'success'
