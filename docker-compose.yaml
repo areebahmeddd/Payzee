@@ -21,12 +21,13 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_DB=0
 
   redis:
     image: redis:latest
-    restart: unless-stopped
     ports:
       - "6379:6379"
+    restart: unless-stopped
     volumes:
       - redis_data:/data
     networks:
@@ -40,9 +41,9 @@ services:
 
   redisinsight:
     image: redis/redisinsight:latest
-    restart: unless-stopped
     ports:
       - "5540:5540"
+    restart: unless-stopped
     volumes:
       - redisinsight_data:/db
     networks:
@@ -50,37 +51,35 @@ services:
     depends_on:
       - redis
 
-  # prometheus:
-  #   image: prom/prometheus
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-  #     - prometheus_data:/prometheus
-  #   command:
-  #     - "--config.file=/etc/prometheus/prometheus.yml"
-  #     - "--storage.tsdb.path=/prometheus"
-  #     - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-  #     - "--web.console.templates=/usr/share/prometheus/consoles"
-  #   networks:
-  #     - payzee_network
-  #   restart: unless-stopped
+#   prometheus:
+#     image: prom/prometheus
+#     ports:
+#       - "9090:9090"
+#     restart: unless-stopped
+#     volumes:
+#       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+#       - prometheus_data:/prometheus
+#     command:
+#       - "--config.file=/etc/prometheus/prometheus.yml"
+#     networks:
+#       - payzee_network
 
-  # grafana:
-  #   image: grafana/grafana
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #   environment:
-  #     - GF_SECURITY_ADMIN_USER=admin
-  #     - GF_SECURITY_ADMIN_PASSWORD=admin@123
-  #     - GF_USERS_ALLOW_SIGN_UP=false
-  #   networks:
-  #     - payzee_network
-  #   depends_on:
-  #     - prometheus
-  #   restart: unless-stopped
+#   grafana:
+#     image: grafana/grafana
+#     ports:
+#       - "3000:3000"
+#     restart: unless-stopped
+#     volumes:
+#       - grafana_data:/var/lib/grafana
+#     environment:
+#       - GF_SECURITY_ADMIN_USER=admin
+#       - GF_SECURITY_ADMIN_PASSWORD=admin@123
+#       - GF_USERS_ALLOW_SIGN_UP=false
+#       - GF_LOG_LEVEL=warn
+#     networks:
+#       - payzee_network
+#     depends_on:
+#       - prometheus
 
 volumes:
   api_data:
