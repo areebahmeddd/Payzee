@@ -15,9 +15,9 @@ class TestAuthRoutes:
             response = client.post(
                 "/api/v1/auth/signup/citizen",
                 json={
-                    "name": "John Doe",
+                    "name": "Test User",
                     "password": "password123",
-                    "email": "john@example.com",
+                    "email": "user@example.com",
                     "phone": "9876543210",
                     "id_type": "Aadhaar",
                     "id_number": "123456789012",
@@ -50,7 +50,7 @@ class TestAuthRoutes:
             response = client.post(
                 "/api/v1/auth/signup/citizen",
                 json={
-                    "name": "John Doe",
+                    "name": "Test User",
                     "password": "password123",
                     "email": "existing@example.com",
                     "id_number": "123456789012",
