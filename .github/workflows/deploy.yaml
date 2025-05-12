@@ -3,7 +3,7 @@ name: Deploy to DigitalOcean
 on:
   push:
     branches:
-      - develop
+      - production
     paths:
       - 'docker/**'
       - 'middleware/**'
@@ -48,12 +48,12 @@ jobs:
 
       - name: Run tests
         id: tests
-        run: poetry run pytest tests/
+        run: poetry run pytest tests/ -v
         continue-on-error: true
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Check if tests passed
+      - name: Check tests result
         id: check-tests
         run: echo "passed=${{ steps.tests.outcome == 'success' }}" >> $GITHUB_OUTPUT
 
