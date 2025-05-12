@@ -28,6 +28,10 @@
       - any-glob-to-any-file: 'models/scheme.py'
       - any-glob-to-any-file: 'utils/db_ops.py'
 
+'💬 Chat System':
+  - changed-files:
+      - any-glob-to-any-file: 'routes/chat.py'
+
 '⚙️ Project Configuration':
   - changed-files:
       - any-glob-to-any-file: '.env'
