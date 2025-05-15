@@ -3,7 +3,11 @@
 echo "Seeding test data into Redis..."
 echo "==============================="
 
-docker exec -i $(docker compose ps -q api) python - << 'EOF'
+# Check if Docker is running
+if command -v docker &> /dev/null && docker info &> /dev/null; then
+    docker exec -i $(docker compose ps -q api) python - << 'EOF'
+else
+    python - << 'EOF'
 import os
 import json
 import uuid
@@ -51,7 +55,7 @@ citizens = [
     {
         "name": "Areeb Ahmed",
         "email": "areeb@example.com",
-        "password": "admin@123",
+        "password": "citizen@123",
         "phone": "+91 9876543210",
         "address": "42, Linking Road, Bandra West, Mumbai, Maharashtra, 400050",
         "id_type": "Aadhaar",
@@ -66,7 +70,7 @@ citizens = [
     {
         "name": "Shivansh Karan",
         "email": "shivansh@example.com",
-        "password": "admin@123",
+        "password": "citizen@123",
         "phone": "+91 8765432109",
         "address": "15, MG Road, Satara, Maharashtra, 415001",
         "id_type": "Aadhaar",
@@ -81,7 +85,7 @@ citizens = [
     {
         "name": "Alfiya Fatima",
         "email": "alfiya@example.com",
-        "password": "admin@123",
+        "password": "citizen@123",
         "phone": "+91 7654321098",
         "address": "78, Civil Lines, Delhi, 110054",
         "id_type": "Aadhaar",
@@ -141,40 +145,40 @@ print("\nCreating vendors...")
 vendors = [
     {
         "name": "Rajan Malhotra",
-        "email": "grocerymart@example.com",
-        "password": "admin@123",
+        "email": "rajan@example.com",
+        "password": "vendor@123",
+        "gender": "male",
         "business_name": "Malhotra Grocery Mart",
-        "phone": "+91 9988776655",
-        "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
         "business_id": "GSTIN22AAAAA1111Z",
         "license_type": "private",
-        "gender": "male",
+        "phone": "+91 9988776655",
+        "address": "23, Krishna Market, Lajpat Nagar, New Delhi, 110024",
         "occupation": "retail business",
         "image_url": "https://cdn.pixabay.com/photo/2019/07/20/20/11/nature-4351455_1280.jpg",
     },
     {
         "name": "Priya Sharma",
-        "email": "medplus@example.com",
-        "password": "admin@123",
+        "email": "priya@example.com",
+        "password": "vendor@123",
+        "gender": "female",
         "business_name": "MedPlus Pharmacy",
-        "phone": "+91 8877665544",
-        "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
         "business_id": "GSTIN09BBBBB2222Y",
         "license_type": "public",
-        "gender": "female",
+        "phone": "+91 8877665544",
+        "address": "56, Sector 18, Noida, Uttar Pradesh, 201301",
         "occupation": "healthcare",
         "image_url": "https://cdn.pixabay.com/photo/2019/10/07/11/26/winter-landscape-4532412_1280.jpg",
     },
     {
         "name": "Abdul Khan",
-        "email": "kirana@example.com",
-        "password": "admin@123",
+        "email": "abdul@example.com",
+        "password": "vendor@123",
+        "gender": "male",
         "business_name": "Khan Kirana Store",
-        "phone": "+91 7766554433",
-        "address": "10, Park Street, Kolkata, West Bengal, 700016",
         "business_id": "GSTIN19CCCCC3333X",
         "license_type": "government",
-        "gender": "male",
+        "phone": "+91 7766554433",
+        "address": "10, Park Street, Kolkata, West Bengal, 700016",
         "occupation": "retail business",
         "image_url": "https://cdn.pixabay.com/photo/2024/09/03/18/03/sand-9019849_1280.jpg",
     },
@@ -190,20 +194,20 @@ for vendor_data in vendors:
             "id": vendor_id,
             "name": vendor_data["name"],
             "email": vendor_data["email"],
+            "gender": vendor_data["gender"],
             "password": vendor_data["password"],
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "user_type": "vendor",
-            "gender": vendor_data["gender"],
             "image_url": vendor_data["image_url"],
         },
         "business_info": {
             "business_name": vendor_data["business_name"],
             "business_id": vendor_data["business_id"],
             "license_type": vendor_data["license_type"],
-            "occupation": vendor_data["occupation"],
             "phone": vendor_data["phone"],
             "address": vendor_data["address"],
+            "occupation": vendor_data["occupation"],
         },
         "wallet_info": {"balance": random.randint(5000, 20000), "transactions": []},
     }
@@ -218,7 +222,7 @@ governments = [
     {
         "name": "Ministry of Social Justice",
         "email": "social.justice@gov.in",
-        "password": "admin@123",
+        "password": "govt@123",
         "jurisdiction": "Central",
         "govt_id": "DOPT0001",
         "image_url": "https://cdn.pixabay.com/photo/2016/10/24/22/43/dubai-1767540_1280.jpg",
@@ -226,7 +230,7 @@ governments = [
     {
         "name": "Karnataka Rural Development",
         "email": "rural.dev@karnataka.gov.in",
-        "password": "admin@123",
+        "password": "govt@123",
         "jurisdiction": "State",
         "govt_id": "KARD0002",
         "image_url": "https://cdn.pixabay.com/photo/2023/06/21/16/26/warnemunde-8079731_1280.jpg",
@@ -234,7 +238,7 @@ governments = [
     {
         "name": "Delhi Social Welfare Department",
         "email": "dsw@delhi.gov.in",
-        "password": "admin@123",
+        "password": "govt@123",
         "jurisdiction": "State",
         "govt_id": "DELSW003",
         "image_url": "https://cdn.pixabay.com/photo/2024/02/23/21/25/landscape-8592826_1280.jpg",
@@ -591,14 +595,15 @@ print(
     f"  - Transactions created: {transaction_count}"
 )
 EOF
+fi
 
 echo ""
 echo "Test accounts created successfully!"
 echo "==================================="
 echo "Citizens:"
-echo "  - Aadhar ID Number: 123456789012 / Password: admin@123 (Areeb Ahmed)"
-echo "  - Aadhar ID Number: 234567890123 / Password: admin@123 (Shivansh Karan)"
-echo "  - Aadhar ID Number: 345678901234 / Password: admin@123 (Alfiya Fatima)"
+echo "  - Aadhar ID Number: 123456789012 / Password: citizen@123 (Areeb Ahmed)"
+echo "  - Aadhar ID Number: 234567890123 / Password: citizen@123 (Shivansh Karan)"
+echo "  - Aadhar ID Number: 345678901234 / Password: citizen@123 (Alfiya Fatima)"
 echo ""
 echo "Vendors:"
 echo "  - Business ID: GSTIN22AAAAA1111Z / Password: admin@123 (Malhotra Grocery Mart)"
@@ -606,6 +611,6 @@ echo "  - Business ID: GSTIN09BBBBB2222Y / Password: admin@123 (MedPlus Pharmacy
 echo "  - Business ID: GSTIN19CCCCC3333X / Password: admin@123 (Khan Kirana Store)"
 echo ""
 echo "Government Entities:"
-echo "  - Govt ID: DOPT0001 / Password: admin@123 (Ministry of Social Justice)"
-echo "  - Govt ID: KARD0002 / Password: admin@123 (Karnataka Rural Development)"
-echo "  - Govt ID: DELSW003 / Password: admin@123 (Delhi Social Welfare Department)"
+echo "  - Govt ID: DOPT0001 / Password: govt@123 (Ministry of Social Justice)"
+echo "  - Govt ID: KARD0002 / Password: govt@123 (Karnataka Rural Development)"
+echo "  - Govt ID: DELSW003 / Password: govt@123 (Delhi Social Welfare Department)"

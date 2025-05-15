@@ -1,38 +1,32 @@
-.PHONY: up down restart clean logs test lint format help
-
-help:
-	@echo "  make up         Start the Docker containers"
-	@echo "  make down       Stop the Docker containers"
-	@echo "  make restart    Restart the Docker containers"
-	@echo "  make clean      Remove all containers and volumes"
-	@echo "  make logs       Stream Docker container logs"
-	@echo "  make test       Run tests"
-	@echo "  make lint       Run linting with Ruff"
-	@echo "  make format     Format code with Ruff"
+.PHONY: up down restart clean logs seed test lint format
 
 up:
 	@echo "Starting Docker containers..."
-	docker-compose up -d
+	docker compose up -d
 
 down:
 	@echo "Stopping Docker containers..."
-	docker-compose down
+	docker compose down
 
 restart:
 	@echo "Restarting Docker containers..."
-	docker-compose restart
+	docker compose restart
 
 clean: down
 	@echo "Removing all containers, volumes, and images..."
-	docker-compose down -v --rmi all --remove-orphans
+	docker compose down -v --rmi all --remove-orphans
 
 logs:
 	@echo "Streaming logs from Docker containers..."
-	docker-compose logs -f
+	docker compose logs -f
+
+seed:
+	@echo "Seeding database with test data..."
+	bash scripts/seed_data.sh
 
 test:
 	@echo "Running tests..."
-	pytest tests/
+	pytest tests/ -v
 
 lint:
 	@echo "Running linting with Ruff..."

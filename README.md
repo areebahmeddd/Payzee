@@ -8,6 +8,7 @@
 ├── app.py             # Main FastAPI application entry point
 ├── .devcontainer/     # Development container configuration
 ├── .github/           # GitHub workflows and configuration
+├── data/              # External datasets and reference information
 ├── db/                # Redis database configuration and operations
 ├── docker/            # Docker configuration files
 ├── docs/              # Documentation files
@@ -56,7 +57,7 @@ This script will:
 Using Docker Compose:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Or with Make:
@@ -68,13 +69,13 @@ make up
 To view logs from all services:
 
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 To view logs for a specific service (e.g., `api`):
 
 ```bash
-docker-compose logs -f api
+docker compose logs -f api
 ```
 
 ### 2. Run the app manually with Docker
@@ -123,6 +124,22 @@ poetry run uvicorn app:app --reload
 
 ## 🧪 Development Tools
 
+### 🌱 Seeding Data
+
+You can seed initial development data using one of the following commands:
+
+```bash
+./scripts/seed_data.sh
+```
+
+Or with Make:
+
+```bash
+make seed
+```
+
+This populates the database with test data for local development and testing.
+
 ### ✅ Testing
 
 Run tests with `pytest`:
@@ -137,7 +154,7 @@ make test
 
 ### 🧼 Pre-commit Hooks
 
-We use **pre-commit** hooks with **Ruff** for linting and formatting.
+We use **pre-commit** hooks with **Ruff** for linting and formatting. (Installed with project dependencies)
 
 Hooks handle:
 
@@ -145,8 +162,6 @@ Hooks handle:
 - Ensuring files end with a newline
 - Checking JSON/YAML syntax
 - Python linting & formatting with Ruff
-
-Pre-commit is installed with project dependencies.
 
 To run all hooks manually:
 
