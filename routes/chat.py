@@ -1,22 +1,21 @@
 import os
 import json
 import pandas as pd
-import google.generativeai as genai
+from google import genai
+from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
-from pathlib import Path
 from langdetect import detect
 from gtts import gTTS
 from dotenv import load_dotenv
 
 load_dotenv()
 
-if not os.getenv("GEMINI_API_KEY"):
+if not os.environ.get("GEMINI_API_KEY"):
     raise ValueError("GEMINI_API_KEY environment variable is not set")
 
 # Configure Gemini API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash")
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 router = APIRouter()
 
 # Language code mapping for text-to-speech conversion
@@ -70,9 +69,11 @@ async def chat(
 def convert_audio_to_text(file_path: str) -> str:
     try:
         # Upload audio file and request transcription
-        audio_file = genai.upload_file(path=file_path)
+        audio_file = client.files.upload(path=file_path)
         prompt = "Transcribe the following audio into clear and readable text."
-        response = model.generate_content([prompt, audio_file])
+        response = client.models.generate_content(
+            model="gemini-2.0-flash", contents=[prompt, audio_file]
+        )
         return response.text
     except Exception as e:
         raise HTTPException(
@@ -82,7 +83,7 @@ def convert_audio_to_text(file_path: str) -> str:
 
 def generate_response(user_query: str, user_profile: dict) -> str:
     try:
-        chat_session = model.start_chat(history=[])
+        chat = client.chats.create(model="gemini-2.0-flash")
 
         # Load government schemes and market data
         scheme_data = ""
@@ -106,8 +107,8 @@ def generate_response(user_query: str, user_profile: dict) -> str:
             f"Context:\n{scheme_data}"
         )
 
-        chat_session.send_message(system_prompt)
-        response = chat_session.send_message(user_query)
+        chat.send_message(system_prompt)
+        response = chat.send_message(user_query)
         return response.text
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM processing error: {str(e)}")
