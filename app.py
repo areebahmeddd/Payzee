@@ -1,7 +1,11 @@
+import os
+import sentry_sdk
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 # from middleware.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from routes.auth import router as auth_router
@@ -9,6 +13,16 @@ from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
 from routes.government import router as government_router
 from routes.chat import router as chat_router
+
+# Initialize Sentry (Uncomment if Sentry is used)
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    environment=os.environ.get("SENTRY_ENV"),
+    integrations=[
+        FastApiIntegration(),
+        RedisIntegration(),
+    ],
+)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -33,7 +47,7 @@ app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(citizen_router, prefix="/api/v1/citizens", tags=["citizen"])
 app.include_router(vendor_router, prefix="/api/v1/vendors", tags=["vendor"])
 app.include_router(government_router, prefix="/api/v1/governments", tags=["government"])
-app.include_router(chat_router, prefix="/api/v1/chat", tags=["chat"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["chatbot"])
 
 
 @app.get("/", response_class=HTMLResponse)
