@@ -1,33 +1,33 @@
 {
-    "name": "Payzee API",
-    "dockerComposeFile": "../docker-compose.yaml",
-    "service": "api",
-    "workspaceFolder": "/app",
-    "forwardPorts": [8000, 6379, 5540],
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-python.python",
-                "ms-python.vscode-pylance",
-                "charliermarsh.ruff",
-                "redhat.vscode-yaml"
-            ],
-            "settings": {
-                "python.linting.enabled": true,
-                "python.formatting.provider": "none",
-                "editor.formatOnSave": true,
-                "editor.defaultFormatter": null,
-                "editor.codeActionsOnSave": {
-                    "source.fixAll.ruff": true,
-                    "source.organizeImports.ruff": true
-                },
-                "python.testing.pytestEnabled": true,
-                "python.testing.unittestEnabled": false,
-                "python.testing.nosetestsEnabled": false,
-                "python.testing.pytestArgs": ["tests"]
-            }
-        }
-    },
-    "postCreateCommand": "poetry install --no-root",
-    "remoteUser": "root"
+  "name": "Payzee API",
+  "dockerComposeFile": "../docker-compose.yaml",
+  "service": "api",
+  "workspaceFolder": "/app",
+  "forwardPorts": [8000, 6379, 5540],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "python.linting.enabled": true,
+        "python.formatting.provider": "none",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": null,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.ruff": true,
+          "source.organizeImports.ruff": true
+        },
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.nosetestsEnabled": false,
+        "python.testing.pytestArgs": ["tests"]
+      }
+    }
+  },
+  "postCreateCommand": "poetry install --no-root",
+  "remoteUser": "root"
 }
