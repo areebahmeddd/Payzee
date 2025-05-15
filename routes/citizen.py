@@ -238,7 +238,6 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
         eligible = True
         eligibility_results = {}
 
-        # Personal info checks
         personal_info = citizen.get("personal_info", {})
 
         # Check occupation
@@ -266,8 +265,8 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check gender
         if "gender" in eligibility_criteria:
-            required_gender: str = eligibility_criteria["gender"]
-            citizen_gender: str = personal_info.get("gender", "")
+            required_gender = eligibility_criteria["gender"]
+            citizen_gender = personal_info.get("gender", "")
 
             # If "any" is specified or exact match
             if required_gender != "any" and required_gender != citizen_gender:
@@ -286,10 +285,8 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check caste
         if "caste" in eligibility_criteria:
-            required_caste: str = eligibility_criteria["caste"]
-            citizen_caste: str = personal_info.get("caste", "")
-
-            # If "all" is specified or exact match
+            required_caste = eligibility_criteria["caste"]
+            citizen_caste = personal_info.get("caste", "")
             if required_caste != "all" and required_caste != citizen_caste:
                 eligible = False
                 eligibility_results["caste"] = {
@@ -306,11 +303,8 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check annual income
         if "annual_income" in eligibility_criteria:
-            max_annual_income: float = eligibility_criteria["annual_income"]
-            citizen_annual_income: float = personal_info.get(
-                "annual_income", float("inf")
-            )
-
+            max_annual_income = eligibility_criteria["annual_income"]
+            citizen_annual_income = personal_info.get("annual_income", float("inf"))
             if citizen_annual_income > max_annual_income:
                 eligible = False
                 eligibility_results["annual_income"] = {
@@ -328,24 +322,19 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
         # Check age if min_age and max_age are specified
         if "min_age" in eligibility_criteria or "max_age" in eligibility_criteria:
             import datetime
-            from dateutil import parser
 
-            dob_str: str = personal_info.get("dob", "")
+            dob_str = personal_info.get("dob", "")
             if dob_str:
                 try:
-                    # Parse DOB string (format might be different, adjust as needed)
-                    dob = parser.parse(
-                        dob_str, dayfirst=True
-                    )  # assuming format like "15-05-1990"
+                    dob = datetime.datetime.fromisoformat(dob_str)
                     today = datetime.datetime.now()
-                    age: int = (
+                    age = (
                         today.year
                         - dob.year
                         - ((today.month, today.day) < (dob.month, dob.day))
                     )
-
-                    min_age: int = eligibility_criteria.get("min_age", 0)
-                    max_age: int = eligibility_criteria.get("max_age", float("inf"))
+                    min_age = eligibility_criteria.get("min_age", 0)
+                    max_age = eligibility_criteria.get("max_age", float("inf"))
 
                     if age < min_age or age > max_age:
                         eligible = False
@@ -361,18 +350,17 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
                             "passed": True,
                         }
                 except Exception as e:
-                    # Handle date parsing errors
                     eligibility_results["age"] = {
                         "error": f"Could not determine age: {str(e)}",
                         "passed": False,
                     }
                     eligible = False
 
-        # Check location (state, district, city) if specified
-        address: str = personal_info.get("address", "")
+        address = personal_info.get("address", "")
 
+        # Check state
         if "state" in eligibility_criteria:
-            required_state: str = eligibility_criteria["state"]
+            required_state = eligibility_criteria["state"]
             if required_state != "all" and required_state not in address:
                 eligible = False
                 eligibility_results["state"] = {
@@ -389,7 +377,7 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check district
         if "district" in eligibility_criteria:
-            required_district: str = eligibility_criteria["district"]
+            required_district = eligibility_criteria["district"]
             if required_district != "all" and required_district not in address:
                 eligible = False
                 eligibility_results["district"] = {
@@ -406,7 +394,7 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check city
         if "city" in eligibility_criteria:
-            required_city: str = eligibility_criteria["city"]
+            required_city = eligibility_criteria["city"]
             if required_city != "all" and required_city not in address:
                 eligible = False
                 eligibility_results["city"] = {
@@ -422,7 +410,7 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
                 }
 
         # Create result object with all eligibility details
-        scheme_result: Dict[str, Any] = {
+        scheme_result = {
             "id": scheme["id"],
             "name": scheme["name"],
             "description": scheme["description"],

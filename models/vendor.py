@@ -13,9 +13,9 @@ class Vendor:
         business_name: Optional[str] = None,
         business_id: Optional[str] = None,
         license_type: Optional[str] = None,
-        occupation: Optional[str] = None,
         phone: Optional[str] = None,
         address: Optional[str] = None,
+        occupation: Optional[str] = None,
         image_url: Optional[str] = None,
     ):
         self.account_info: Dict[str, Any] = {
@@ -23,10 +23,10 @@ class Vendor:
             "name": name,
             "email": email,
             "password": password,
+            "gender": gender,
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
             "user_type": "vendor",
-            "gender": gender,
             "image_url": image_url,
         }
 
@@ -34,9 +34,9 @@ class Vendor:
             "business_name": business_name,
             "business_id": business_id,
             "license_type": license_type,
-            "occupation": occupation,
             "phone": phone,
             "address": address,
+            "occupation": occupation,
         }
 
         self.wallet_info: Dict[str, Any] = {
@@ -57,14 +57,14 @@ class Vendor:
             name=data["account_info"]["name"],
             password=data["account_info"]["password"],
             email=data["account_info"].get("email"),
-            image_url=data["account_info"].get("image_url"),
             gender=data["account_info"].get("gender"),
             business_name=data["business_info"].get("business_name"),
             business_id=data["business_info"].get("business_id"),
             license_type=data["business_info"].get("license_type"),
-            occupation=data["business_info"].get("occupation"),
             phone=data["business_info"].get("phone"),
             address=data["business_info"].get("address"),
+            occupation=data["business_info"].get("occupation"),
+            image_url=data["account_info"].get("image_url"),
         )
         vendor.account_info = data["account_info"]
         vendor.business_info = data["business_info"]

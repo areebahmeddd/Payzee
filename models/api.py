@@ -8,11 +8,11 @@ class CitizenSignup(BaseModel):
     password: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+    gender: Optional[str] = None
     id_type: str = "Aadhaar"
     id_number: str
     address: Optional[str] = None
     dob: Optional[str] = None
-    gender: Optional[str] = None
     occupation: Optional[str] = None
     caste: Optional[str] = None
     annual_income: Optional[float] = None
@@ -23,12 +23,12 @@ class VendorSignup(BaseModel):
     name: str
     password: str
     email: Optional[EmailStr] = None
-    phone: Optional[str] = None
+    gender: Optional[str] = None
     business_name: str
     business_id: str
     license_type: str
+    phone: Optional[str] = None
     address: Optional[str] = None
-    gender: Optional[str] = None
     occupation: Optional[str] = None
     image_url: Optional[str] = None
 
@@ -38,7 +38,7 @@ class GovernmentSignup(BaseModel):
     password: str
     email: Optional[EmailStr] = None
     jurisdiction: str
-    govt_id: str
+    govt_id: Optional[str] = None
     image_url: Optional[str] = None
 
 
