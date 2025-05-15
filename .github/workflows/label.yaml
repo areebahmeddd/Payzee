@@ -10,7 +10,6 @@ permissions:
 jobs:
   triage:
     runs-on: ubuntu-latest
-
     steps:
       - name: Run labeler
         uses: actions/labeler@v5
