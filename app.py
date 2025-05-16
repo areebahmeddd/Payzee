@@ -32,9 +32,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Setup middleware
+# Setup middleware (* for dev environment)
 app.add_middleware(
-    CORSMiddleware,  # TODO: Change CORS settings for production
+    CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
