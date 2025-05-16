@@ -35,6 +35,19 @@ REDIS_QUERY_TIME = Summary(
     ["operation", "collection"],
 )
 
+# Rate limiting metrics
+RATE_LIMIT_EXCEEDED = Counter(
+    "rate_limit_exceeded_total",
+    "Total number of requests that exceeded rate limits",
+    ["client_ip"],
+)
+
+IP_BAN_TOTAL = Counter(
+    "ip_ban_total",
+    "Total number of IP addresses banned due to rate limit violations",
+    ["client_ip"],
+)
+
 
 # Helper functions
 def increment_request_count(method, endpoint, status_code):

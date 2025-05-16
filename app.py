@@ -1,29 +1,33 @@
-import os
-import sentry_sdk
+# import os
+# import sentry_sdk
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
-from starlette_exporter import PrometheusMiddleware, handle_metrics
 
-from middleware.middleware import LoggingMiddleware, ErrorHandlerMiddleware
+# from sentry_sdk.integrations.fastapi import FastApiIntegration
+# from sentry_sdk.integrations.redis import RedisIntegration
+from starlette_exporter import PrometheusMiddleware, handle_metrics
+from middleware.middleware import (
+    LoggingMiddleware,
+    ErrorHandlerMiddleware,
+    RateLimitMiddleware,
+)
 from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
 from routes.government import router as government_router
 from routes.chat import router as chat_router
 
-# Initialize Sentry (Uncomment if Sentry is used)
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    environment=os.environ.get("SENTRY_ENV"),
-    integrations=[
-        FastApiIntegration(),
-        RedisIntegration(),
-    ],
-)
+# Initialize Sentry (Used in prod environment)
+# sentry_sdk.init(
+#     dsn=os.environ.get("SENTRY_DSN"),
+#     environment=os.environ.get("SENTRY_ENV"),
+#     integrations=[
+#         FastApiIntegration(),
+#         RedisIntegration(),
+#     ],
+# )
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -42,6 +46,7 @@ app.add_middleware(
 )
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 # Add Prometheus middleware for metrics
 app.add_middleware(
