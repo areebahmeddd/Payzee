@@ -78,17 +78,23 @@ services:
     depends_on:
       - prometheus
 
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    volumes:
+      - uptime_kuma_data:/app/data
+    networks:
+      - payzee_network
+
 volumes:
   api_data:
-    driver: local
   redis_data:
-    driver: local
   redisinsight_data:
-    driver: local
   prometheus_data:
-    driver: local
   grafana_data:
-    driver: local
+  uptime_kuma_data:
 
 networks:
   payzee_network:
