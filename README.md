@@ -1,6 +1,6 @@
 # Payzee: Pay Easy, Payzee!
 
-**Payzee** is a modern payment processor powered by **Central Bank Digital Currency (CBDC)** — also known as the **Digital Rupee** or **e-rupee (e₹)**.
+**Payzee** is a modern payment processor powered by **Central Bank Digital Currency (CBDC)** — also known as the **Digital Rupee** or **e-rupee (e₹)**. [[ YouTube Demo ]](https://youtube.com/shorts/qatWtapzcAU)
 
 ## 📁 Project Structure
 
