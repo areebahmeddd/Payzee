@@ -34,10 +34,10 @@ app = FastAPI(
 
 # Setup middleware
 app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"^https:\/\/.*\.1mindlabs\.org$",
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Authorization", "Content-Type"],
+    CORSMiddleware,  # TODO: Change CORS settings for production
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
     allow_credentials=True,
 )
 app.add_middleware(LoggingMiddleware)
