@@ -89,7 +89,6 @@ async def get_all_citizen_profiles(government_id: str) -> JSONResponse:
         raise HTTPException(status_code=404, detail="Government not found")
 
     citizens = get_all_citizens()
-
     for citizen in citizens:
         if "account_info" in citizen and "password" in citizen["account_info"]:
             citizen["account_info"].pop("password")
@@ -122,7 +121,6 @@ async def get_all_vendor_profiles(government_id: str) -> JSONResponse:
         raise HTTPException(status_code=404, detail="Government not found")
 
     vendors = get_all_vendors()
-
     for vendor in vendors:
         if "account_info" in vendor and "password" in vendor["account_info"]:
             vendor["account_info"].pop("password")
@@ -155,7 +153,6 @@ async def get_all_system_transactions(government_id: str) -> JSONResponse:
         raise HTTPException(status_code=404, detail="Government not found")
 
     transactions = get_all_transactions()
-
     # Sort by timestamp, newest first
     transactions.sort(
         key=lambda x: x["timestamp"] if "timestamp" in x else "", reverse=True

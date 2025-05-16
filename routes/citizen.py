@@ -217,7 +217,6 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
     # Get all active schemes
     active_schemes = get_all_schemes()
-
     # Filter for active schemes
     active_schemes = [
         scheme for scheme in active_schemes if scheme.get("status") == "active"
