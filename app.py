@@ -6,8 +6,9 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
+from starlette_exporter import PrometheusMiddleware, handle_metrics
 
-# from middleware.middleware import LoggingMiddleware, ErrorHandlerMiddleware
+from middleware.middleware import LoggingMiddleware, ErrorHandlerMiddleware
 from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
@@ -39,8 +40,18 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
-# app.add_middleware(LoggingMiddleware)
-# app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(ErrorHandlerMiddleware)
+
+# Add Prometheus middleware for metrics
+app.add_middleware(
+    PrometheusMiddleware,
+    app_name="payzee",
+    group_paths=True,
+    filter_unhandled_paths=False,
+    prefix="payzee",
+)
+app.add_route("/metrics", handle_metrics)
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])

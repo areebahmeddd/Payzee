@@ -6,6 +6,7 @@ from starlette.responses import Response, HTMLResponse, JSONResponse
 from starlette.exceptions import HTTPException
 from pathlib import Path
 from typing import Callable, Awaitable
+from metrics import HTTP_REQUEST_COUNT, HTTP_REQUEST_LATENCY
 
 # Configure logging
 logging.basicConfig(
@@ -16,26 +17,44 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
-    """Middleware to log requests and responses."""
+    """Middleware for logging requests, responses, and tracking metrics."""
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         start_time = time.time()
+        method = request.method
+        path = request.url.path
 
         # Log the request
-        logger.info(f"Request started: {request.method} {request.url.path}")
+        logger.info(f"Request started: {method} {path}")
 
-        # Process the request
-        response = await call_next(request)
+        try:
+            # Process the request
+            response = await call_next(request)
 
-        # Calculate and log the processing time
-        process_time = time.time() - start_time
-        logger.info(
-            f"Request completed: {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.3f}s"
-        )
+            # Record metrics
+            status_code = response.status_code
+            duration = time.time() - start_time
+            HTTP_REQUEST_COUNT.labels(
+                method=method, endpoint=path, http_status=status_code
+            ).inc()
+            HTTP_REQUEST_LATENCY.labels(method=method, endpoint=path).observe(duration)
 
-        return response
+            # Calculate and log the processing time
+            logger.info(
+                f"Request completed: {method} {path} - Status: {status_code} - Time: {duration:.3f}s"
+            )
+
+            return response
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"Error processing request: {method} {path} - Error: {str(e)}")
+            HTTP_REQUEST_COUNT.labels(
+                method=method, endpoint=path, http_status=500
+            ).inc()
+            HTTP_REQUEST_LATENCY.labels(method=method, endpoint=path).observe(duration)
+            raise
 
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):

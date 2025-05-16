@@ -1,8 +1,37 @@
+import time
+import functools
 from .redis_config import redis_client
 from utils.db_helpers import serialize_for_db, deserialize_from_db
 from typing import Any, Dict, List, Optional
+from metrics import REDIS_QUERY_TIME
 
 
+def track_db_operation(func):
+    """Decorator to track Redis operation execution time"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        collection = args[0] if args else kwargs.get("collection_prefix", "unknown")
+        operation = func.__name__
+
+        # Start timing
+        start_time = time.time()
+
+        try:
+            # Execute the function
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            # Record the time taken
+            duration = time.time() - start_time
+            REDIS_QUERY_TIME.labels(operation=operation, collection=collection).observe(
+                duration
+            )
+
+    return wrapper
+
+
+@track_db_operation
 def get_document(collection_prefix: str, doc_id: str) -> Optional[Dict[str, Any]]:
     """Get a document from Redis by ID"""
     key = f"{collection_prefix}{doc_id}"
@@ -10,6 +39,7 @@ def get_document(collection_prefix: str, doc_id: str) -> Optional[Dict[str, Any]
     return deserialize_from_db(data)
 
 
+@track_db_operation
 def set_document(
     collection_prefix: str,
     doc_id: str,
@@ -25,6 +55,7 @@ def set_document(
     return doc_id
 
 
+@track_db_operation
 def delete_document(
     collection_prefix: str, doc_id: str, index_set: Optional[str] = None
 ) -> bool:
@@ -37,6 +68,7 @@ def delete_document(
     return True
 
 
+@track_db_operation
 def get_all_documents(collection_prefix: str, index_set: str) -> List[Dict[str, Any]]:
     """Get all documents of a specific type"""
     result = []
@@ -48,6 +80,7 @@ def get_all_documents(collection_prefix: str, index_set: str) -> List[Dict[str, 
     return result
 
 
+@track_db_operation
 def query_by_field(
     collection_prefix: str, index_set: str, field_path: str, value: Any
 ) -> List[Dict[str, Any]]:
@@ -78,6 +111,7 @@ def query_by_field(
     return result
 
 
+@track_db_operation
 def update_document(
     collection_prefix: str, doc_id: str, update_data: Dict[str, Any]
 ) -> bool:
@@ -105,6 +139,7 @@ def update_document(
     return False
 
 
+@track_db_operation
 def array_union(
     collection_prefix: str, doc_id: str, field_path: str, values: List[Any]
 ) -> bool:
