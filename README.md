@@ -6,6 +6,7 @@
 
 ```
 ├── app.py             # Main FastAPI application entry point
+├── metrics.py         # Prometheus metrics and monitoring configuration
 ├── .devcontainer/     # Development container configuration
 ├── .github/           # GitHub workflows and configuration
 ├── data/              # External datasets and reference information
