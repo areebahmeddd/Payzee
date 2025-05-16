@@ -1,11 +1,11 @@
 import time
 import logging
 import threading
+from pathlib import Path
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, HTMLResponse, JSONResponse
 from starlette.exceptions import HTTPException
-from pathlib import Path
 from typing import Callable, Awaitable
 from metrics import (
     HTTP_REQUEST_COUNT,
@@ -13,7 +13,6 @@ from metrics import (
     RATE_LIMIT_EXCEEDED,
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -31,9 +30,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         method = request.method
         path = request.url.path
 
-        # Log the request
-        logger.info(f"Request started: {method} {path}")
-
         try:
             # Process the request
             response = await call_next(request)
@@ -41,12 +37,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             # Record metrics
             status_code = response.status_code
             duration = time.time() - start_time
+
             HTTP_REQUEST_COUNT.labels(
                 method=method, endpoint=path, http_status=status_code
             ).inc()
             HTTP_REQUEST_LATENCY.labels(method=method, endpoint=path).observe(duration)
 
-            # Calculate and log the processing time
+            # Log the request and response
             logger.info(
                 f"Request completed: {method} {path} - Status: {status_code} - Time: {duration:.3f}s"
             )
