@@ -3,11 +3,7 @@
 echo "Seeding test data into Redis..."
 echo "==============================="
 
-# Check if Docker is running
-if command -v docker &> /dev/null && docker info &> /dev/null; then
-    docker exec -i $(docker compose ps -q api) python - << 'EOF'
-else
-    python - << 'EOF'
+PYTHON_SCRIPT=$(cat << 'EOF'
 import os
 import json
 import uuid
@@ -595,6 +591,13 @@ print(
     f"  - Transactions created: {transaction_count}"
 )
 EOF
+)
+
+# Check if script is running inside Docker container
+if command -v docker &> /dev/null && docker info &> /dev/null; then
+    echo "$PYTHON_SCRIPT" | docker exec -i $(docker compose ps -q api) python -
+else
+    echo "$PYTHON_SCRIPT" | python -
 fi
 
 echo ""
@@ -606,9 +609,9 @@ echo "  - Aadhar ID Number: 234567890123 / Password: citizen@123 (Shivansh Karan
 echo "  - Aadhar ID Number: 345678901234 / Password: citizen@123 (Alfiya Fatima)"
 echo ""
 echo "Vendors:"
-echo "  - Business ID: GSTIN22AAAAA1111Z / Password: admin@123 (Malhotra Grocery Mart)"
-echo "  - Business ID: GSTIN09BBBBB2222Y / Password: admin@123 (MedPlus Pharmacy)"
-echo "  - Business ID: GSTIN19CCCCC3333X / Password: admin@123 (Khan Kirana Store)"
+echo "  - Business ID: GSTIN22AAAAA1111Z / Password: vendor@123 (Malhotra Grocery Mart)"
+echo "  - Business ID: GSTIN09BBBBB2222Y / Password: vendor@123 (MedPlus Pharmacy)"
+echo "  - Business ID: GSTIN19CCCCC3333X / Password: vendor@123 (Khan Kirana Store)"
 echo ""
 echo "Government Entities:"
 echo "  - Govt ID: DOPT0001 / Password: govt@123 (Ministry of Social Justice)"
