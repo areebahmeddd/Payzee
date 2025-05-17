@@ -2,6 +2,9 @@
 
 **Payzee** is a modern payment processor powered by **Central Bank Digital Currency (CBDC)** — also known as the **Digital Rupee** or **e-rupee (e₹)**. [[ YouTube Demo ]](https://youtube.com/shorts/qatWtapzcAU)
 
+- 💻 T3-stack Website: [Live](https://payzee.netlify.app) | [Source Code](https://github.com/alfiyafatima09/payzee_website)
+- 📱 Flutter App: [Live](#) | [Source Code](https://github.com/1MindLabs/payzee-app)
+
 ## 📁 Project Structure
 
 ```
