@@ -1,0 +1,65 @@
+groups:
+  - name: payzee_alerts
+    rules:
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds[5m])) by (le, endpoint)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API request latency"
+          description: "95th percentile latency for '{{ $labels.endpoint }}' exceeds 1 second over the last 5 minutes."
+
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{http_status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Server errors (HTTP 5xx) exceed 1% of total requests in the last 5 minutes."
+
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, sum(rate(db_query_processing_seconds[5m])) by (le)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile database query latency exceeds 500 ms over the last 5 minutes."
+
+      - alert: EndpointDown
+        expr: absent(up{job="payzee"} == 1)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API endpoint down"
+          description: "API endpoint unreachable for more than 1 minute."
+
+      - alert: RedisDown
+        expr: absent(up{job="redis"} == 1)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis service down"
+          description: "Redis unreachable for more than 1 minute."
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="payzee"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage above 80% for the last 5 minutes."
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job="payzee"} > 524288000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage above 500MB for the last 5 minutes."
