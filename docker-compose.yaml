@@ -57,11 +57,11 @@ services:
       - "9090:9090"
     restart: unless-stopped
     volumes:
-      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./monitoring/alerts.yaml:/etc/prometheus/alerts.yml
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./monitoring/alerts.yaml:/etc/prometheus/alerts.yaml
       - prometheus_data:/prometheus
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--config.file=/etc/prometheus/prometheus.yaml"
     networks:
       - payzee_network
 
