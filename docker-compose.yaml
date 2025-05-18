@@ -52,13 +52,13 @@ services:
       - redis
 
   prometheus:
-    image: prom/prometheus:latest
+    build:
+      context: .
+      dockerfile: docker/prometheus.Dockerfile
     ports:
       - "9090:9090"
     restart: unless-stopped
     volumes:
-      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./monitoring/alerts.yaml:/etc/prometheus/alerts.yml
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -94,6 +94,7 @@ volumes:
   redis_data:
   redisinsight_data:
   prometheus_data:
+  prometheus_config:
   grafana_data:
   uptime_kuma_data:
 
