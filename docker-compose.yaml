@@ -1,10 +1,37 @@
 services:
+  proxy:
+    image: traefik:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_data:/etc/traefik/acme
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.email=hi@areeb.dev"
+      - "--certificatesresolvers.myresolver.acme.storage=/etc/traefik/acme/acme.json"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+    networks:
+      - payzee_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.areeb.dev`)"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=myresolver"
+
   api:
     build:
       context: .
       dockerfile: docker/prod.Dockerfile
-    ports:
-      - "8000:8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -22,11 +49,17 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_DB=0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.areeb.dev`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
 
   redis:
     image: redis:latest
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -41,8 +74,6 @@ services:
 
   redisinsight:
     image: redis/redisinsight:latest
-    ports:
-      - "5540:5540"
     restart: unless-stopped
     volumes:
       - redisinsight_data:/db
@@ -50,11 +81,15 @@ services:
       - payzee_network
     depends_on:
       - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redisinsight.rule=Host(`redis.areeb.dev`)"
+      - "traefik.http.routers.redisinsight.entrypoints=websecure"
+      - "traefik.http.routers.redisinsight.tls.certresolver=myresolver"
+      - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
 
   prometheus:
     image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
     restart: unless-stopped
     volumes:
       - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
@@ -64,32 +99,51 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - payzee_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`metrics.areeb.dev`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.middlewares=prometheus-auth"
+      - "traefik.http.middlewares.prometheus-auth.basicauth.users=admin:$$apr1$$ry9s9rhk$$P3owXeKYQm3vTw6lczXWr."
 
   grafana:
     image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
     restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
       - GF_LOG_LEVEL=warn
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=strongpassword
     networks:
       - payzee_network
     depends_on:
       - prometheus
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.areeb.dev`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
   uptime-kuma:
     image: louislam/uptime-kuma:latest
-    ports:
-      - "3001:3001"
     restart: unless-stopped
     volumes:
       - uptime_kuma_data:/app/data
     networks:
       - payzee_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptimekuma.rule=Host(`status.areeb.dev`)"
+      - "traefik.http.routers.uptimekuma.entrypoints=websecure"
+      - "traefik.http.routers.uptimekuma.tls.certresolver=myresolver"
+      - "traefik.http.services.uptimekuma.loadbalancer.server.port=3001"
 
 volumes:
+  traefik_data:
   api_data:
   redis_data:
   redisinsight_data:
