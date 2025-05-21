@@ -68,7 +68,6 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - payzee_network
-
   grafana:
     image: grafana/grafana:latest
     ports:
