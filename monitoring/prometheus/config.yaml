@@ -3,7 +3,7 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - alerts.yaml
+  - monitoring/prometheus/alerts.yaml
 
 scrape_configs:
   - job_name: "payzee"
@@ -11,6 +11,6 @@ scrape_configs:
       - targets: ["api:8000"]
     metrics_path: "/metrics"
 
-  - job_name: "redis"
-    static_configs:
-      - targets: ["redis:6379"]
+#   - job_name: "redis"
+#     static_configs:
+#       - targets: ["redis:6379"]

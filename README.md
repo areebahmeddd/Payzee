@@ -2,14 +2,13 @@
 
 **Payzee** is a modern payment processor powered by **Central Bank Digital Currency (CBDC)** — also known as the **Digital Rupee** or **e-rupee (e₹)**. [[ YouTube Demo ]](https://youtube.com/shorts/qatWtapzcAU)
 
-- 💻 T3-stack Website: [Live](https://payzee.netlify.app) | [Source Code](https://github.com/alfiyafatima09/payzee_website)
+- 💻 T3-stack Website: [Live](https://payzee.1mindlabs.org) | [Source Code](https://github.com/alfiyafatima09/payzee-website)
 - 📱 Flutter App: [Live](#) | [Source Code](https://github.com/1MindLabs/payzee-app)
 
 ## 📁 Project Structure
 
 ```
 ├── app.py             # Main FastAPI application entry point
-├── metrics.py         # Prometheus metrics and monitoring configuration
 ├── .devcontainer/     # Development container configuration
 ├── .github/           # GitHub workflows and configuration
 ├── data/              # External datasets and reference information
@@ -18,6 +17,7 @@
 ├── docs/              # Documentation files
 ├── middleware/        # Request/response middleware components
 ├── models/            # Data models for transactions, users, and payment entities
+├── monitoring/        # Application Performance Monitoring with Prometheus (metrics collection) and Grafana (visualization)
 ├── routes/            # API endpoints for payments and authentication
 ├── scripts/           # Development and setup scripts
 ├── templates/         # HTML templates for the application

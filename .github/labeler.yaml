@@ -41,10 +41,10 @@
 
 '🐳 Docker':
   - changed-files:
+      - any-glob-to-any-file: '.devcontainer/**/*'
+      - any-glob-to-any-file: '.dockerignore'
       - any-glob-to-any-file: 'docker/**/*'
       - any-glob-to-any-file: 'docker-compose.yaml'
-      - any-glob-to-any-file: '.dockerignore'
-      - any-glob-to-any-file: '.devcontainer/**/*'
 
 '🔧 CI/CD Pipeline':
   - changed-files:
@@ -53,11 +53,11 @@
 
 '📋 GitHub Config':
   - changed-files:
-      - any-glob-to-any-file: '.github/ISSUE_TEMPLATE.md'
-      - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
       - any-glob-to-any-file: '.github/CODEOWNERS'
-      - any-glob-to-any-file: '.github/labeler.yaml'
       - any-glob-to-any-file: '.github/dependabot.yaml'
+      - any-glob-to-any-file: '.github/ISSUE_TEMPLATE.md'
+      - any-glob-to-any-file: '.github/labeler.yaml'
+      - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
 
 '📦 Dependencies':
   - changed-files:
@@ -67,23 +67,19 @@
 '🧩 Middleware':
   - changed-files:
       - any-glob-to-any-file: 'middleware/**/*'
-      - any-glob-to-any-file: 'middleware/middleware.py'
 
 '🛠️ Utilities':
   - changed-files:
       - any-glob-to-any-file: 'utils/**/*.py'
-      - any-glob-to-any-file: 'utils/common.py'
 
 '🗄️ Redis Database':
   - changed-files:
-      - any-glob-to-any-file: 'db/redis_operations.py'
-      - any-glob-to-any-file: 'db/redis_config.py'
+      - any-glob-to-any-file: 'db/**/*'
       - any-glob-to-any-file: 'utils/db_helpers.py'
 
 '🧪 Tests':
   - changed-files:
       - any-glob-to-any-file: 'tests/**/*.py'
-      - any-glob-to-any-file: 'tests/conftest.py'
 
 '🪛 Development Tools':
   - changed-files:
@@ -91,6 +87,10 @@
       - any-glob-to-any-file: '.editorconfig'
       - any-glob-to-any-file: 'scripts/**/*'
       - any-glob-to-any-file: 'Makefile'
+
+'📊 Monitoring & Metrics':
+  - changed-files:
+      - any-glob-to-any-file: 'monitoring/**/*'
 
 '📐 Templates':
   - changed-files:
