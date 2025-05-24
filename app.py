@@ -1,5 +1,6 @@
 # import os
 # import sentry_sdk
+import time
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -13,6 +14,7 @@ from middleware.middleware import (
     ErrorHandlerMiddleware,
     RateLimitMiddleware,
 )
+from db.redis_config import redis_client
 from routes.auth import router as auth_router
 from routes.citizen import router as citizen_router
 from routes.vendor import router as vendor_router
@@ -74,4 +76,33 @@ def root() -> HTMLResponse:
 
 @app.get("/health")
 def health_check() -> JSONResponse:
-    return JSONResponse(content={"status": "ok"})
+    api_start_time = time.time()
+    api_status = {
+        "name": "FastAPI",
+        "title": "API Check",
+        "code": 200,
+        "message": "All OK",
+        "latency": 0,
+    }
+    api_latency = time.time() - api_start_time
+    api_status["latency"] = round(api_latency, 4)
+
+    db_start_time = time.time()
+    db_status = {
+        "name": "Redis Database",
+        "title": "Database Check",
+        "code": 200,
+        "message": "All OK",
+        "latency": 0,
+    }
+
+    try:
+        redis_client.ping()
+    except Exception as e:
+        db_status["code"] = 503
+        db_status["message"] = str(e)
+
+    db_latency = time.time() - db_start_time
+    db_status["latency"] = round(db_latency, 4)
+
+    return JSONResponse(content={"health": [api_status, db_status]})
