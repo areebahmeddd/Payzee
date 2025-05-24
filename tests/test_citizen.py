@@ -2,10 +2,7 @@ from unittest.mock import patch, MagicMock
 
 
 class TestCitizenRoutes:
-    """Test cases for citizen routes"""
-
     def test_get_citizen_profile_success(self, client, mock_citizen_data):
-        """Test getting a citizen profile successfully"""
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
@@ -21,7 +18,6 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("test-citizen-id")
 
     def test_get_citizen_profile_not_found(self, client):
-        """Test getting a non-existent citizen profile"""
         with patch("routes.citizen.get_citizen", return_value=None) as mock_get:
             # Send request
             response = client.get("/api/v1/citizens/non-existent-id")
@@ -34,7 +30,6 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("non-existent-id")
 
     def test_update_citizen_profile_success(self, client, mock_citizen_data):
-        """Test updating a citizen profile successfully"""
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data
@@ -54,7 +49,6 @@ class TestCitizenRoutes:
             mock_update.assert_called_once()
 
     def test_update_citizen_profile_not_found(self, client):
-        """Test updating a non-existent citizen profile"""
         with patch("routes.citizen.get_citizen", return_value=None) as mock_get:
             # Send update request
             update_data = {"name": "Updated Name"}
@@ -68,7 +62,6 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("non-existent-id")
 
     def test_delete_citizen_profile_success(self, client, mock_citizen_data):
-        """Test deleting a citizen profile successfully"""
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data
@@ -87,7 +80,6 @@ class TestCitizenRoutes:
             mock_delete.assert_called_once_with("test-citizen-id")
 
     def test_get_wallet_success(self, client, mock_citizen_data):
-        """Test getting wallet information successfully"""
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
@@ -103,7 +95,6 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("test-citizen-id")
 
     def test_generate_qr_success(self, client, mock_citizen_data):
-        """Test generating QR code successfully"""
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
@@ -120,7 +111,6 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("test-citizen-id")
 
     def test_get_transactions(self, client, mock_transaction_data):
-        """Test getting transaction history"""
         transaction_list = [mock_transaction_data]
 
         # Mock query functions to return transactions
@@ -146,7 +136,6 @@ class TestCitizenRoutes:
     def test_pay_vendor_success(
         self, client, mock_citizen_data, mock_vendor_data, mock_transaction_data
     ):
-        """Test making a payment to vendor successfully"""
         # Deep copy wallet balances to avoid test side effects
         mock_citizen_data_with_balance = mock_citizen_data.copy()
         mock_citizen_data_with_balance["wallet_info"] = {
@@ -208,7 +197,6 @@ class TestCitizenRoutes:
             )
 
     def test_pay_vendor_insufficient_balance(self, client, mock_citizen_data):
-        """Test payment with insufficient balance"""
         # Set a low balance
         mock_citizen_data_with_low_balance = mock_citizen_data.copy()
         mock_citizen_data_with_low_balance["wallet_info"] = {
@@ -239,7 +227,6 @@ class TestCitizenRoutes:
             mock_get_citizen.assert_called_once_with("test-citizen-id")
 
     def test_get_eligible_schemes(self, client, mock_citizen_data, mock_scheme_data):
-        """Test getting eligible schemes"""
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data

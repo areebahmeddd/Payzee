@@ -14,6 +14,8 @@ class DateTimeEncoder(json.JSONEncoder):
 
 def serialize_for_db(data: Dict[str, Any]) -> str:
     """Serialize data to JSON string with datetime handling"""
+    if data is None:
+        return "{}"
     return json.dumps(data, cls=DateTimeEncoder)
 
 

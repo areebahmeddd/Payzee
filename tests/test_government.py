@@ -2,10 +2,7 @@ from unittest.mock import patch, MagicMock
 
 
 class TestGovernmentRoutes:
-    """Test cases for government routes"""
-
     def test_get_government_profile_success(self, client, mock_government_data):
-        """Test getting a government profile successfully"""
         with patch(
             "routes.government.get_government", return_value=mock_government_data
         ) as mock_get:
@@ -21,7 +18,6 @@ class TestGovernmentRoutes:
             mock_get.assert_called_once_with("test-govt-id")
 
     def test_get_government_profile_not_found(self, client):
-        """Test getting a non-existent government profile"""
         with patch("routes.government.get_government", return_value=None) as mock_get:
             # Send request
             response = client.get("/api/v1/governments/non-existent-id")
@@ -34,7 +30,6 @@ class TestGovernmentRoutes:
             mock_get.assert_called_once_with("non-existent-id")
 
     def test_update_government_profile_success(self, client, mock_government_data):
-        """Test updating a government profile successfully"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -56,7 +51,6 @@ class TestGovernmentRoutes:
             mock_update.assert_called_once()
 
     def test_delete_government_profile_success(self, client, mock_government_data):
-        """Test deleting a government profile successfully"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -79,7 +73,6 @@ class TestGovernmentRoutes:
             mock_delete.assert_called_once_with("test-govt-id")
 
     def test_get_wallet_success(self, client, mock_government_data):
-        """Test getting wallet information successfully"""
         with patch(
             "routes.government.get_government", return_value=mock_government_data
         ) as mock_get:
@@ -96,7 +89,6 @@ class TestGovernmentRoutes:
             mock_get.assert_called_once_with("test-govt-id")
 
     def test_get_all_citizens(self, client, mock_government_data, mock_citizen_data):
-        """Test getting all citizens"""
         citizens_list = [mock_citizen_data]
 
         with (
@@ -123,7 +115,6 @@ class TestGovernmentRoutes:
     def test_get_specific_citizen(
         self, client, mock_government_data, mock_citizen_data
     ):
-        """Test getting a specific citizen"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -147,7 +138,6 @@ class TestGovernmentRoutes:
             mock_get_citizen.assert_called_once_with("test-citizen-id")
 
     def test_get_all_vendors(self, client, mock_government_data, mock_vendor_data):
-        """Test getting all vendors"""
         vendors_list = [mock_vendor_data]
 
         with (
@@ -172,7 +162,6 @@ class TestGovernmentRoutes:
             mock_get_vendors.assert_called_once()
 
     def test_get_specific_vendor(self, client, mock_government_data, mock_vendor_data):
-        """Test getting a specific vendor"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -198,7 +187,6 @@ class TestGovernmentRoutes:
     def test_get_all_transactions(
         self, client, mock_government_data, mock_transaction_data
     ):
-        """Test getting all transactions"""
         transactions_list = [mock_transaction_data]
 
         with (
@@ -224,7 +212,6 @@ class TestGovernmentRoutes:
     def test_get_specific_transaction(
         self, client, mock_government_data, mock_transaction_data
     ):
-        """Test getting a specific transaction"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -249,7 +236,6 @@ class TestGovernmentRoutes:
     def test_create_scheme_success(
         self, client, mock_government_data, mock_scheme_data
     ):
-        """Test creating a scheme successfully"""
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -299,7 +285,6 @@ class TestGovernmentRoutes:
             mock_array_union.assert_called_once()
 
     def test_get_schemes(self, client, mock_government_data, mock_scheme_data):
-        """Test getting schemes created by government"""
         schemes_list = [mock_scheme_data]
 
         with (
@@ -324,7 +309,6 @@ class TestGovernmentRoutes:
             mock_query_schemes.assert_called_once_with("govt_id", "test-govt-id")
 
     def test_get_specific_scheme(self, client, mock_government_data, mock_scheme_data):
-        """Test getting a specific scheme"""
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
         scheme_data["govt_id"] = "test-govt-id"
@@ -354,7 +338,6 @@ class TestGovernmentRoutes:
     def test_update_scheme_success(
         self, client, mock_government_data, mock_scheme_data
     ):
-        """Test updating a scheme successfully"""
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
         scheme_data["govt_id"] = "test-govt-id"
@@ -411,7 +394,6 @@ class TestGovernmentRoutes:
     def test_soft_delete_scheme_success(
         self, client, mock_government_data, mock_scheme_data
     ):
-        """Test soft-deleting a scheme successfully"""
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
         scheme_data["govt_id"] = "test-govt-id"
@@ -448,7 +430,6 @@ class TestGovernmentRoutes:
     def test_get_scheme_beneficiaries(
         self, client, mock_government_data, mock_scheme_data, mock_citizen_data
     ):
-        """Test getting beneficiaries of a scheme"""
         # Ensure the scheme belongs to this government and has beneficiaries
         scheme_data = mock_scheme_data.copy()
         scheme_data["govt_id"] = "test-govt-id"

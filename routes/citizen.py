@@ -1,6 +1,7 @@
 import io
 import qrcode
 import base64
+import datetime
 from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
@@ -320,8 +321,6 @@ async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
 
         # Check age if min_age and max_age are specified
         if "min_age" in eligibility_criteria or "max_age" in eligibility_criteria:
-            import datetime
-
             dob_str = personal_info.get("dob", "")
             if dob_str:
                 try:

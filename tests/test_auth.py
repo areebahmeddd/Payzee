@@ -2,10 +2,7 @@ from unittest.mock import patch
 
 
 class TestAuthRoutes:
-    """Test cases for authentication routes"""
-
-    def test_citizen_signup_success(self, client, mock_redis):
-        """Test successful citizen signup"""
+    def test_citizen_signup_success(self, client):
         # Mock the query and save functions
         with (
             patch("routes.auth.query_citizens_by_field", return_value=[]) as mock_query,
@@ -41,7 +38,6 @@ class TestAuthRoutes:
             mock_save.assert_called_once()
 
     def test_citizen_signup_email_exists(self, client):
-        """Test citizen signup with existing email"""
         # Mock query to return existing user
         with patch(
             "routes.auth.query_citizens_by_field", return_value=[{"id": "existing-id"}]
@@ -62,7 +58,6 @@ class TestAuthRoutes:
             assert "Email already registered" in response.json()["detail"]
 
     def test_vendor_signup_success(self, client):
-        """Test successful vendor signup"""
         # Mock the query and save functions
         with (
             patch("routes.auth.query_vendors_by_field", return_value=[]) as mock_query,
@@ -96,7 +91,6 @@ class TestAuthRoutes:
             mock_save.assert_called_once()
 
     def test_government_signup_success(self, client):
-        """Test successful government signup"""
         # Mock the query and save functions
         with (
             patch(
@@ -129,7 +123,6 @@ class TestAuthRoutes:
             mock_save.assert_called_once()
 
     def test_login_citizen_success(self, client, mock_citizen_data):
-        """Test successful citizen login"""
         # Mock query to return citizen
         with patch(
             "routes.auth.query_citizens_by_field", return_value=[mock_citizen_data]
@@ -149,7 +142,6 @@ class TestAuthRoutes:
             mock_query.assert_called_once()
 
     def test_login_vendor_success(self, client, mock_vendor_data):
-        """Test successful vendor login"""
         # Mock query to return no citizens but a vendor
         with (
             patch(
@@ -175,7 +167,6 @@ class TestAuthRoutes:
             mock_vendor_query.assert_called_once()
 
     def test_login_government_success(self, client, mock_government_data):
-        """Test successful government login"""
         # Mock query to return no citizens or vendors but a government
         with (
             patch(
@@ -206,7 +197,6 @@ class TestAuthRoutes:
             mock_govt_query.assert_called_once()
 
     def test_login_invalid_credentials(self, client):
-        """Test login with invalid credentials"""
         # Mock query to return no users
         with (
             patch("routes.auth.query_citizens_by_field", return_value=[]),
@@ -224,7 +214,6 @@ class TestAuthRoutes:
             assert "Invalid ID number or password" in response.json()["detail"]
 
     def test_logout(self, client):
-        """Test logout endpoint"""
         response = client.post("/api/v1/auth/logout")
 
         # Verify response

@@ -1,9 +1,9 @@
 import time
 import functools
+from typing import Any, Dict, List, Optional
 from .redis_config import redis_client
 from utils.db_helpers import serialize_for_db, deserialize_from_db
-from typing import Any, Dict, List, Optional
-from metrics import REDIS_QUERY_TIME
+from monitoring.metrics import REDIS_QUERY_TIME
 
 
 def track_db_operation(func):

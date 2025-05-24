@@ -6,20 +6,17 @@ from app import app
 
 @pytest.fixture
 def client():
-    """Return a TestClient for making API requests"""
     return TestClient(app)
 
 
 @pytest.fixture
 def mock_redis():
-    """Mock Redis connection for testing"""
     with patch("db.redis_config.redis_client") as mock_redis:
         yield mock_redis
 
 
 @pytest.fixture
 def mock_citizen_data():
-    """Sample citizen data"""
     return {
         "account_info": {
             "id": "test-citizen-id",
@@ -52,7 +49,6 @@ def mock_citizen_data():
 
 @pytest.fixture
 def mock_vendor_data():
-    """Sample vendor data"""
     return {
         "account_info": {
             "id": "test-vendor-id",
@@ -82,7 +78,6 @@ def mock_vendor_data():
 
 @pytest.fixture
 def mock_government_data():
-    """Sample government data"""
     return {
         "account_info": {
             "id": "test-govt-id",
@@ -106,7 +101,6 @@ def mock_government_data():
 
 @pytest.fixture
 def mock_scheme_data():
-    """Sample scheme data"""
     return {
         "id": "test-scheme-id",
         "name": "Test Scheme",
@@ -130,7 +124,6 @@ def mock_scheme_data():
 
 @pytest.fixture
 def mock_transaction_data():
-    """Sample transaction data"""
     return {
         "id": "test-transaction-id",
         "from_id": "test-citizen-id",

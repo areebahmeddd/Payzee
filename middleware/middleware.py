@@ -2,12 +2,12 @@ import time
 import logging
 import threading
 from pathlib import Path
+from typing import Callable, Awaitable
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, HTMLResponse, JSONResponse
 from starlette.exceptions import HTTPException
-from typing import Callable, Awaitable
-from metrics import (
+from monitoring.metrics import (
     HTTP_REQUEST_COUNT,
     HTTP_REQUEST_LATENCY,
     RATE_LIMIT_EXCEEDED,
@@ -67,14 +67,14 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             # Handle 404 response status
-            if response.status_code == 404:
+            if response.status_code == 404 and not request.url.path.startswith("/api"):
                 html_file = Path("templates/404.html").read_text()
                 return HTMLResponse(content=html_file, status_code=404)
 
             return response
         except HTTPException as exc:
-            if exc.status_code == 404:
-                return JSONResponse(status_code=404, content={"detail": "Not found"})
+            # if exc.status_code == 404:
+            #     return JSONResponse(status_code=404, content={"detail": "Not found"})
 
             # If it's a different HTTP exception, re-raise it
             raise exc
@@ -83,7 +83,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Middleware to limit the number of requests from a single IP address."""
 
-    def __init__(self, app, request_limit=30, cooldown_seconds=60):
+    def __init__(self, app, request_limit=50, cooldown_seconds=60):
         """
         Initialize the rate limiter with default settings:
         - request_limit: Maximum number of requests allowed in the cooldown period.

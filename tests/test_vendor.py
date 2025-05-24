@@ -2,10 +2,7 @@ from unittest.mock import patch
 
 
 class TestVendorRoutes:
-    """Test cases for vendor routes"""
-
     def test_get_vendor_profile_success(self, client, mock_vendor_data):
-        """Test getting a vendor profile successfully"""
         with patch(
             "routes.vendor.get_vendor", return_value=mock_vendor_data
         ) as mock_get:
@@ -21,7 +18,6 @@ class TestVendorRoutes:
             mock_get.assert_called_once_with("test-vendor-id")
 
     def test_get_vendor_profile_not_found(self, client):
-        """Test getting a non-existent vendor profile"""
         with patch("routes.vendor.get_vendor", return_value=None) as mock_get:
             # Send request
             response = client.get("/api/v1/vendors/non-existent-id")
@@ -34,7 +30,6 @@ class TestVendorRoutes:
             mock_get.assert_called_once_with("non-existent-id")
 
     def test_update_vendor_profile_success(self, client, mock_vendor_data):
-        """Test updating a vendor profile successfully"""
         with (
             patch(
                 "routes.vendor.get_vendor", return_value=mock_vendor_data
@@ -54,7 +49,6 @@ class TestVendorRoutes:
             mock_update.assert_called_once()
 
     def test_update_vendor_profile_not_found(self, client):
-        """Test updating a non-existent vendor profile"""
         with patch("routes.vendor.get_vendor", return_value=None) as mock_get:
             # Send update request
             update_data = {"name": "Updated Vendor"}
@@ -68,7 +62,6 @@ class TestVendorRoutes:
             mock_get.assert_called_once_with("non-existent-id")
 
     def test_delete_vendor_profile_success(self, client, mock_vendor_data):
-        """Test deleting a vendor profile successfully"""
         with (
             patch(
                 "routes.vendor.get_vendor", return_value=mock_vendor_data
@@ -87,7 +80,6 @@ class TestVendorRoutes:
             mock_delete.assert_called_once_with("test-vendor-id")
 
     def test_get_wallet_success(self, client, mock_vendor_data):
-        """Test getting wallet information successfully"""
         with patch(
             "routes.vendor.get_vendor", return_value=mock_vendor_data
         ) as mock_get:
@@ -103,7 +95,6 @@ class TestVendorRoutes:
             mock_get.assert_called_once_with("test-vendor-id")
 
     def test_generate_qr_success(self, client, mock_vendor_data):
-        """Test generating QR code successfully"""
         with patch(
             "routes.vendor.get_vendor", return_value=mock_vendor_data
         ) as mock_get:
@@ -120,7 +111,6 @@ class TestVendorRoutes:
             mock_get.assert_called_once_with("test-vendor-id")
 
     def test_get_transactions(self, client, mock_transaction_data):
-        """Test getting transaction history"""
         transaction_list = [mock_transaction_data]
 
         # Mock query functions to return transactions
@@ -146,7 +136,6 @@ class TestVendorRoutes:
     def test_get_specific_transaction_success(
         self, client, mock_vendor_data, mock_transaction_data
     ):
-        """Test getting a specific transaction"""
         # Set the vendor as a participant in the transaction
         transaction_data = mock_transaction_data.copy()
         transaction_data["to_id"] = "test-vendor-id"
@@ -176,7 +165,6 @@ class TestVendorRoutes:
     def test_get_specific_transaction_not_associated(
         self, client, mock_vendor_data, mock_transaction_data
     ):
-        """Test getting a transaction not associated with the vendor"""
         # Ensure the vendor is not a participant in the transaction
         transaction_data = mock_transaction_data.copy()
         transaction_data["from_id"] = "other-id"
