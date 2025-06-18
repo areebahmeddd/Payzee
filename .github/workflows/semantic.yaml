@@ -19,12 +19,12 @@ jobs:
           types: |
             feat
             fix
-            docs
-            style
+            wip
             refactor
+            style
+            docs
             test
             build
             ci
             chore
             revert
-            wip
