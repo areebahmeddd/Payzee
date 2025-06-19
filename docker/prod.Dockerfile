@@ -21,10 +21,14 @@ RUN poetry export -f requirements.txt > requirements.txt && \
 
 FROM python:3.11-alpine AS runner
 
+RUN adduser -D fastapi
+
 WORKDIR /app
 
 COPY --from=builder /dependencies /usr/local/lib/python3.11/site-packages
 COPY . .
+
+USER fastapi
 
 EXPOSE 8000
 
