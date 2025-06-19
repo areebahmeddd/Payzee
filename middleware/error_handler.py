@@ -13,7 +13,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
 
             # Handle 404 response status
             if response.status_code == 404 and not request.url.path.startswith("/api"):
-                html_file = Path("templates/404.html").read_text()
+                html_file = Path("templates/404.html").read_text(encoding="utf-8")
                 return HTMLResponse(content=html_file, status_code=404)
 
             return response

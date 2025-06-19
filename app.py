@@ -70,7 +70,7 @@ app.include_router(chat_router, prefix="/api/v1/chat", tags=["chatbot"])
 
 @app.get("/", response_class=HTMLResponse)
 def root() -> HTMLResponse:
-    html_file = Path("templates/index.html").read_text()
+    html_file = Path("templates/index.html").read_text(encoding="utf-8")
     return html_file
 
 
