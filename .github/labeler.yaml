@@ -45,6 +45,12 @@
       - any-glob-to-any-file: '.dockerignore'
       - any-glob-to-any-file: 'docker/**/*'
       - any-glob-to-any-file: 'docker-compose.yaml'
+      - any-glob-to-any-file: 'docker-compose.local.yaml'
+      - any-glob-to-any-file: 'docker-compose.swarm.yaml'
+
+'☸️ Kubernetes':
+  - changed-files:
+      - any-glob-to-any-file: 'k8s/**/*'
 
 '🔧 CI/CD Pipeline':
   - changed-files:
@@ -58,6 +64,7 @@
       - any-glob-to-any-file: '.github/ISSUE_TEMPLATE.md'
       - any-glob-to-any-file: '.github/labeler.yaml'
       - any-glob-to-any-file: '.github/PULL_REQUEST_TEMPLATE.md'
+      - any-glob-to-any-file: '.github/copilot-instructions.md'
 
 '📦 Dependencies':
   - changed-files:
