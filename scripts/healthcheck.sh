@@ -3,7 +3,7 @@
 echo "Checking services status..."
 echo "---------------------------"
 
-services=(api redis redisinsight prometheus grafana)
+services=(api redis redisinsight prometheus alertmanager grafana traefik)
 fail=0
 
 for svc in "${services[@]}"; do

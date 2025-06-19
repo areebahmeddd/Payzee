@@ -1,28 +1,41 @@
 # Environment files
+.env
 .env.example
 .venv/
 venv/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # Version control
 .git/
 .gitignore
+.gitattributes
 .github/
 
 # Docker-related files
 docker/
 .dockerignore
+docker-compose.yaml
+docker-compose.local.yaml
+docker-compose.swarm.yaml
+
+# Kubernetes configs
+k8s/
 
 # Testing and cache
 .pytest_cache/
 .coverage
 htmlcov/
 .ruff_cache/
+tests/
 
 # Development tools
 .pre-commit-config.yaml
 .editorconfig
 .devcontainer/
+scripts/
 
 # IDE specific files
 .idea/
@@ -41,8 +54,10 @@ Thumbs.db
 build/
 dist/
 
-# Project specific
-**/prometheus.yaml
-
 # Documentation
 docs/
+README.md
+LICENSE
+
+# Development files
+Makefile

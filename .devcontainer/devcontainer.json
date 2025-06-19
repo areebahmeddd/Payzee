@@ -1,6 +1,6 @@
 {
   "name": "Payzee API",
-  "dockerComposeFile": "../docker-compose.yaml",
+  "dockerComposeFile": "../docker-compose.local.yaml",
   "service": "api",
   "workspaceFolder": "/app",
   "forwardPorts": [8000, 6379, 5540],

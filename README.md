@@ -14,10 +14,11 @@
 ├── data/              # External datasets and reference information
 ├── db/                # Redis database configuration and operations
 ├── docker/            # Docker configuration files
+├── k8s/               # Kubernetes configuration files
 ├── docs/              # Documentation files
 ├── middleware/        # Request/response middleware components
 ├── models/            # Data models for transactions, users, and payment entities
-├── monitoring/        # Application Performance Monitoring with Prometheus (metrics collection) and Grafana (visualization)
+├── monitoring/        # Application Performance Monitoring with Prometheus (metrics collection), Grafana (visualization), and AlertManager (alerting)
 ├── routes/            # API endpoints for payments and authentication
 ├── scripts/           # Development and setup scripts
 ├── templates/         # HTML templates for the application
@@ -61,7 +62,7 @@ This script will:
 Using Docker Compose:
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.local.yaml up -d
 ```
 
 Or with Make:
