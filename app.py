@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from sentry_sdk.integrations.fastapi import FastApiIntegration
 # from sentry_sdk.integrations.redis import RedisIntegration
 from starlette_exporter import PrometheusMiddleware, handle_metrics
-from middleware.middleware import (
+from middleware import (
     LoggingMiddleware,
     ErrorHandlerMiddleware,
     RateLimitMiddleware,
