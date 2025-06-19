@@ -1,0 +1,55 @@
+networks:
+  default:
+    name: payzee
+
+volumes:
+  api_data:
+  redis_data:
+  redisinsight_data:
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - api_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/db
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
