@@ -17,14 +17,17 @@ services:
   api:
     image: areebahmeddd/payzee:production
     environment:
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
       - api_data:/app/data
     deploy:
       replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         parallelism: 1
         failure_action: rollback
@@ -59,6 +62,9 @@ services:
       - redis_data:/data
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -66,10 +72,10 @@ services:
       resources:
         limits:
           memory: 512M
-          cpus: "0.5"
+          cpus: "1.0"
         reservations:
           memory: 256M
-          cpus: "0.25"
+          cpus: "0.5"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -82,6 +88,9 @@ services:
       - redisinsight_data:/db
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -112,6 +121,9 @@ services:
       - prometheus_data:/prometheus
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -141,6 +153,9 @@ services:
       - alertmanager_data:/alertmanager
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -171,6 +186,9 @@ services:
       - grafana_data:/var/lib/grafana
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -195,6 +213,9 @@ services:
       - uptime_kuma_data:/app/data
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
       update_config:
         failure_action: rollback
       restart_policy:
@@ -202,10 +223,10 @@ services:
       resources:
         limits:
           memory: 256M
-          cpus: "0.25"
+          cpus: "0.5"
         reservations:
           memory: 128M
-          cpus: "0.1"
+          cpus: "0.25"
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.payzee-uptime.rule=Host(`payzee-uptime.1mindlabs.org`)"
@@ -226,9 +247,11 @@ services:
       - --providers.swarm.network=payzee
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+      # Redirect HTTP to HTTPS
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      # Let's Encrypt setup
       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.letsencrypt.acme.email=contact@1mindlabs.org
@@ -252,7 +275,7 @@ services:
       resources:
         limits:
           memory: 256M
-          cpus: "0.25"
+          cpus: "0.5"
         reservations:
           memory: 128M
-          cpus: "0.1"
+          cpus: "0.25"
