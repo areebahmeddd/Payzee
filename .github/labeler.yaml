@@ -26,15 +26,14 @@
   - changed-files:
       - any-glob-to-any-file: 'models/transaction.py'
       - any-glob-to-any-file: 'models/scheme.py'
-      - any-glob-to-any-file: 'utils/db_ops.py'
 
 '💬 Chat System':
   - changed-files:
       - any-glob-to-any-file: 'routes/chat.py'
+      - any-glob-to-any-file: 'models/chat.py'
 
 '⚙️ Project Configuration':
   - changed-files:
-      - any-glob-to-any-file: '.env'
       - any-glob-to-any-file: '.env.example'
       - any-glob-to-any-file: '.gitignore'
       - any-glob-to-any-file: '.gitattributes'
@@ -83,6 +82,7 @@
   - changed-files:
       - any-glob-to-any-file: 'db/**/*'
       - any-glob-to-any-file: 'utils/db_helpers.py'
+      - any-glob-to-any-file: 'utils/db_ops.py'
 
 '🧪 Tests':
   - changed-files:
