@@ -2,12 +2,16 @@ from unittest.mock import patch, MagicMock
 
 
 class TestCitizenRoutes:
-    def test_get_citizen_profile_success(self, client, mock_citizen_data):
+    def test_get_citizen_profile_success(
+        self, client, mock_citizen_data, auth_headers_citizen
+    ):
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
             # Send request
-            response = client.get("/api/v1/citizens/test-citizen-id")
+            response = client.get(
+                "/api/v1/citizens/test-citizen-id", headers=auth_headers_citizen
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -17,10 +21,12 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("test-citizen-id")
 
-    def test_get_citizen_profile_not_found(self, client):
+    def test_get_citizen_profile_not_found(self, client, auth_headers_citizen):
         with patch("routes.citizen.get_citizen", return_value=None) as mock_get:
             # Send request
-            response = client.get("/api/v1/citizens/non-existent-id")
+            response = client.get(
+                "/api/v1/citizens/non-existent-id", headers=auth_headers_citizen
+            )
 
             # Verify response is not found
             assert response.status_code == 404
@@ -29,7 +35,9 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("non-existent-id")
 
-    def test_update_citizen_profile_success(self, client, mock_citizen_data):
+    def test_update_citizen_profile_success(
+        self, client, mock_citizen_data, auth_headers_citizen
+    ):
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data
@@ -38,7 +46,11 @@ class TestCitizenRoutes:
         ):
             # Send update request
             update_data = {"name": "Updated Name", "email": "updated@example.com"}
-            response = client.put("/api/v1/citizens/test-citizen-id", json=update_data)
+            response = client.put(
+                "/api/v1/citizens/test-citizen-id",
+                json=update_data,
+                headers=auth_headers_citizen,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -48,11 +60,15 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("test-citizen-id")
             mock_update.assert_called_once()
 
-    def test_update_citizen_profile_not_found(self, client):
+    def test_update_citizen_profile_not_found(self, client, auth_headers_citizen):
         with patch("routes.citizen.get_citizen", return_value=None) as mock_get:
             # Send update request
             update_data = {"name": "Updated Name"}
-            response = client.put("/api/v1/citizens/non-existent-id", json=update_data)
+            response = client.put(
+                "/api/v1/citizens/non-existent-id",
+                json=update_data,
+                headers=auth_headers_citizen,
+            )
 
             # Verify response is not found
             assert response.status_code == 404
@@ -61,7 +77,9 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("non-existent-id")
 
-    def test_delete_citizen_profile_success(self, client, mock_citizen_data):
+    def test_delete_citizen_profile_success(
+        self, client, mock_citizen_data, auth_headers_citizen
+    ):
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data
@@ -69,7 +87,9 @@ class TestCitizenRoutes:
             patch("routes.citizen.delete_citizen", return_value=True) as mock_delete,
         ):
             # Send delete request
-            response = client.delete("/api/v1/citizens/test-citizen-id")
+            response = client.delete(
+                "/api/v1/citizens/test-citizen-id", headers=auth_headers_citizen
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -79,12 +99,14 @@ class TestCitizenRoutes:
             mock_get.assert_called_once_with("test-citizen-id")
             mock_delete.assert_called_once_with("test-citizen-id")
 
-    def test_get_wallet_success(self, client, mock_citizen_data):
+    def test_get_wallet_success(self, client, mock_citizen_data, auth_headers_citizen):
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
             # Send request
-            response = client.get("/api/v1/citizens/test-citizen-id/wallet")
+            response = client.get(
+                "/api/v1/citizens/test-citizen-id/wallet", headers=auth_headers_citizen
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -94,12 +116,15 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("test-citizen-id")
 
-    def test_generate_qr_success(self, client, mock_citizen_data):
+    def test_generate_qr_success(self, client, mock_citizen_data, auth_headers_citizen):
         with patch(
             "routes.citizen.get_citizen", return_value=mock_citizen_data
         ) as mock_get:
             # Send request
-            response = client.get("/api/v1/citizens/test-citizen-id/generate-qr")
+            response = client.get(
+                "/api/v1/citizens/test-citizen-id/generate-qr",
+                headers=auth_headers_citizen,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -110,11 +135,19 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("test-citizen-id")
 
-    def test_get_transactions(self, client, mock_transaction_data):
+    def test_get_transactions(
+        self, client, mock_citizen_data, mock_transaction_data, auth_headers_citizen
+    ):
         transaction_list = [mock_transaction_data]
 
-        # Mock query functions to return transactions
-        with patch("routes.citizen.query_transactions_by_field") as mock_query:
+        # Mock both the citizen existence check and query functions
+        with (
+            patch("routes.citizen.get_citizen") as mock_get_citizen,
+            patch("routes.citizen.query_transactions_by_field") as mock_query,
+        ):
+            # Mock citizen existence
+            mock_get_citizen.return_value = mock_citizen_data
+
             # Configure mock to return different values based on arguments
             mock_query.side_effect = (
                 lambda field, value: transaction_list
@@ -123,18 +156,27 @@ class TestCitizenRoutes:
             )
 
             # Send request
-            response = client.get("/api/v1/citizens/test-citizen-id/transactions")
+            response = client.get(
+                "/api/v1/citizens/test-citizen-id/transactions",
+                headers=auth_headers_citizen,
+            )
 
             # Verify response
             assert response.status_code == 200
             assert isinstance(response.json(), list)
             assert len(response.json()) > 0
 
-            # Verify mock was called twice (for from_id and to_id)
+            # Verify mocks were called
+            mock_get_citizen.assert_called_once_with("test-citizen-id")
             assert mock_query.call_count == 2
 
     def test_pay_vendor_success(
-        self, client, mock_citizen_data, mock_vendor_data, mock_transaction_data
+        self,
+        client,
+        mock_citizen_data,
+        mock_vendor_data,
+        mock_transaction_data,
+        auth_headers_citizen,
     ):
         # Deep copy wallet balances to avoid test side effects
         mock_citizen_data_with_balance = mock_citizen_data.copy()
@@ -178,7 +220,9 @@ class TestCitizenRoutes:
                 "description": "Test payment",
             }
             response = client.post(
-                "/api/v1/citizens/test-citizen-id/pay", json=payment_data
+                "/api/v1/citizens/test-citizen-id/pay",
+                json=payment_data,
+                headers=auth_headers_citizen,
             )
 
             # Verify response
@@ -196,7 +240,9 @@ class TestCitizenRoutes:
                 "test-transaction-id", mock_transaction_data
             )
 
-    def test_pay_vendor_insufficient_balance(self, client, mock_citizen_data):
+    def test_pay_vendor_insufficient_balance(
+        self, client, mock_citizen_data, auth_headers_citizen
+    ):
         # Set a low balance
         mock_citizen_data_with_low_balance = mock_citizen_data.copy()
         mock_citizen_data_with_low_balance["wallet_info"] = {
@@ -216,7 +262,9 @@ class TestCitizenRoutes:
                 "description": "Test payment",
             }
             response = client.post(
-                "/api/v1/citizens/test-citizen-id/pay", json=payment_data
+                "/api/v1/citizens/test-citizen-id/pay",
+                json=payment_data,
+                headers=auth_headers_citizen,
             )
 
             # Verify response is bad request
@@ -226,7 +274,9 @@ class TestCitizenRoutes:
             # Verify mock was called
             mock_get_citizen.assert_called_once_with("test-citizen-id")
 
-    def test_get_eligible_schemes(self, client, mock_citizen_data, mock_scheme_data):
+    def test_get_eligible_schemes(
+        self, client, mock_citizen_data, mock_scheme_data, auth_headers_citizen
+    ):
         with (
             patch(
                 "routes.citizen.get_citizen", return_value=mock_citizen_data
@@ -236,7 +286,10 @@ class TestCitizenRoutes:
             ) as mock_get_schemes,
         ):
             # Send request
-            response = client.get("/api/v1/citizens/test-citizen-id/eligible-schemes")
+            response = client.get(
+                "/api/v1/citizens/test-citizen-id/eligible-schemes",
+                headers=auth_headers_citizen,
+            )
 
             # Verify response
             assert response.status_code == 200

@@ -2,11 +2,12 @@ import io
 import qrcode
 import base64
 import datetime
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
 from models.api import PaymentRequest, MessageResponse
 from models.transaction import Transaction
+from utils.auth import require_citizen
 from db import (
     get_citizen,
     update_citizen,
@@ -23,13 +24,19 @@ from db.redis_config import CITIZENS_PREFIX, VENDORS_PREFIX
 router = APIRouter()
 
 
-# Get citizen profile
 @router.get("/{citizen_id}")
-async def get_citizen_profile(citizen_id: str) -> JSONResponse:
-    # Check if citizen exists
+async def get_citizen_profile(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own profile.",
+        )
 
     # Remove sensitive information
     if "password" in citizen["account_info"]:
@@ -38,14 +45,21 @@ async def get_citizen_profile(citizen_id: str) -> JSONResponse:
     return JSONResponse(content=citizen)
 
 
-# Update citizen profile
 @router.put("/{citizen_id}", response_model=MessageResponse)
 async def update_citizen_profile(
-    citizen_id: str, data: Dict[str, Any] = Body(...)
+    citizen_id: str,
+    data: Dict[str, Any] = Body(...),
+    current_user: dict = Depends(require_citizen),
 ) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only update your own profile.",
+        )
 
     # Only update fields that are present
     update_data = {}
@@ -59,34 +73,54 @@ async def update_citizen_profile(
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
-# Delete citizen profile
 @router.delete("/{citizen_id}", response_model=MessageResponse)
-async def delete_citizen_profile(citizen_id: str) -> JSONResponse:
+async def delete_citizen_profile(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
 
-    # Delete the citizen
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only delete your own profile.",
+        )
+
     delete_citizen(citizen_id)
     return JSONResponse(content={"message": "Citizen profile deleted successfully"})
 
 
-# Get wallet information
 @router.get("/{citizen_id}/wallet")
-async def get_wallet(citizen_id: str) -> JSONResponse:
+async def get_wallet(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own wallet.",
+        )
 
     return JSONResponse(content=citizen["wallet_info"])
 
 
-# Generate QR code for payment
 @router.get("/{citizen_id}/generate-qr")
-async def generate_qr(citizen_id: str) -> JSONResponse:
+async def generate_qr(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only generate QR for your own account.",
+        )
 
     # Generate QR code with user ID
     qr = qrcode.QRCode(
@@ -109,9 +143,20 @@ async def generate_qr(citizen_id: str) -> JSONResponse:
     return JSONResponse(content={"qr_code": img_str, "user_id": citizen_id})
 
 
-# Get transaction history
 @router.get("/{citizen_id}/transactions")
-async def get_transactions(citizen_id: str) -> JSONResponse:
+async def get_transactions(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
+    citizen = get_citizen(citizen_id)
+    if not citizen:
+        raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own transactions.",
+        )
+
     # Find transactions where user is either sender or receiver
     from_transactions = query_transactions_by_field("from_id", citizen_id)
     to_transactions = query_transactions_by_field("to_id", citizen_id)
@@ -132,13 +177,21 @@ async def get_transactions(citizen_id: str) -> JSONResponse:
     return JSONResponse(content=transactions)
 
 
-# Transfer money to vendor
 @router.post("/{citizen_id}/pay", response_model=MessageResponse)
-async def pay_vendor(citizen_id: str, payment: PaymentRequest) -> JSONResponse:
-    # Check if citizen exists
+async def pay_vendor(
+    citizen_id: str,
+    payment: PaymentRequest,
+    current_user: dict = Depends(require_citizen),
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only make payments from your own account.",
+        )
 
     # Validate wallet type
     wallet_type = payment.wallet_type
@@ -209,12 +262,19 @@ async def pay_vendor(citizen_id: str, payment: PaymentRequest) -> JSONResponse:
     )
 
 
-# View eligible schemes
 @router.get("/{citizen_id}/eligible-schemes")
-async def get_eligible_schemes(citizen_id: str) -> JSONResponse:
+async def get_eligible_schemes(
+    citizen_id: str, current_user: dict = Depends(require_citizen)
+) -> JSONResponse:
     citizen = get_citizen(citizen_id)
     if not citizen:
         raise HTTPException(status_code=404, detail="Citizen not found")
+
+    if current_user["user_id"] != citizen_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only view your own eligible schemes.",
+        )
 
     # Get all active schemes
     active_schemes = get_all_schemes()

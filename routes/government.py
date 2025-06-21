@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
 from models.api import SchemeCreate, MessageResponse
 from models.scheme import Scheme
+from utils.auth import require_government
 from db import (
     get_government,
     update_government,
@@ -23,13 +24,19 @@ from db.redis_config import GOVERNMENTS_PREFIX
 router = APIRouter()
 
 
-# Get government profile
 @router.get("/{government_id}")
-async def get_government_profile(government_id: str) -> JSONResponse:
-    # Check if government exists
+async def get_government_profile(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
+
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own profile.",
+        )
 
     # Remove sensitive information
     if "password" in govt["account_info"]:
@@ -38,14 +45,21 @@ async def get_government_profile(government_id: str) -> JSONResponse:
     return JSONResponse(content=govt)
 
 
-# Update government profile
 @router.put("/{government_id}", response_model=MessageResponse)
 async def update_government_profile(
-    government_id: str, data: Dict[str, Any] = Body(...)
+    government_id: str,
+    data: Dict[str, Any] = Body(...),
+    current_user: dict = Depends(require_government),
 ) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
+
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only update your own profile.",
+        )
 
     # Only update fields that are present
     update_data = {}
@@ -59,21 +73,34 @@ async def update_government_profile(
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
-# Delete government profile
 @router.delete("/{government_id}", response_model=MessageResponse)
-async def delete_government_profile(government_id: str) -> JSONResponse:
-    government = get_government(government_id)
-    if not government:
+async def delete_government_profile(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
+    govt = get_government(government_id)
+    if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
-    # Delete the government
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only delete your own profile.",
+        )
+
     delete_government(government_id)
     return JSONResponse(content={"message": "Government profile deleted successfully"})
 
 
-# Get wallet information
 @router.get("/{government_id}/wallet")
-async def get_wallet(government_id: str) -> JSONResponse:
+async def get_wallet(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own wallet.",
+        )
+
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -81,9 +108,16 @@ async def get_wallet(government_id: str) -> JSONResponse:
     return JSONResponse(content=govt["wallet_info"])
 
 
-# Get all citizens
 @router.get("/{government_id}/citizens")
-async def get_all_citizen_profiles(government_id: str) -> JSONResponse:
+async def get_all_citizen_profiles(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own government data.",
+        )
+
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -96,9 +130,18 @@ async def get_all_citizen_profiles(government_id: str) -> JSONResponse:
     return JSONResponse(content=citizens)
 
 
-# Get specific citizen by ID
 @router.get("/{government_id}/citizens/{citizen_id}")
-async def get_specific_citizen(government_id: str, citizen_id: str) -> JSONResponse:
+async def get_specific_citizen(
+    government_id: str,
+    citizen_id: str,
+    current_user: dict = Depends(require_government),
+) -> JSONResponse:
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own government data.",
+        )
+
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -113,9 +156,16 @@ async def get_specific_citizen(government_id: str, citizen_id: str) -> JSONRespo
     return JSONResponse(content=citizen)
 
 
-# Get all vendors
 @router.get("/{government_id}/vendors")
-async def get_all_vendor_profiles(government_id: str) -> JSONResponse:
+async def get_all_vendor_profiles(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own government data.",
+        )
+
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -128,7 +178,6 @@ async def get_all_vendor_profiles(government_id: str) -> JSONResponse:
     return JSONResponse(content=vendors)
 
 
-# Get specific vendor by ID
 @router.get("/{government_id}/vendors/{vendor_id}")
 async def get_specific_vendor(government_id: str, vendor_id: str) -> JSONResponse:
     govt = get_government(government_id)
@@ -145,9 +194,16 @@ async def get_specific_vendor(government_id: str, vendor_id: str) -> JSONRespons
     return JSONResponse(content=vendor)
 
 
-# Get all transactions
 @router.get("/{government_id}/transactions")
-async def get_all_system_transactions(government_id: str) -> JSONResponse:
+async def get_all_system_transactions(
+    government_id: str, current_user: dict = Depends(require_government)
+) -> JSONResponse:
+    if current_user["user_id"] != government_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own government data.",
+        )
+
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
@@ -160,7 +216,6 @@ async def get_all_system_transactions(government_id: str) -> JSONResponse:
     return JSONResponse(content=transactions)
 
 
-# Get specific transaction by ID
 @router.get("/{government_id}/transactions/{transaction_id}")
 async def get_specific_transaction(
     government_id: str, transaction_id: str
@@ -176,7 +231,6 @@ async def get_specific_transaction(
     return JSONResponse(content=transaction)
 
 
-# Create a new scheme
 @router.post("/{government_id}/schemes", response_model=MessageResponse)
 async def create_scheme(government_id: str, scheme_data: SchemeCreate) -> JSONResponse:
     govt = get_government(government_id)
@@ -205,19 +259,16 @@ async def create_scheme(government_id: str, scheme_data: SchemeCreate) -> JSONRe
     )
 
 
-# Get all schemes created by this government
 @router.get("/{government_id}/schemes")
 async def get_schemes(government_id: str) -> JSONResponse:
     govt = get_government(government_id)
     if not govt:
         raise HTTPException(status_code=404, detail="Government not found")
 
-    # Get schemes created by this government
     schemes = query_schemes_by_field("govt_id", government_id)
     return JSONResponse(content=schemes)
 
 
-# Get a specific scheme by ID
 @router.get("/{government_id}/schemes/{scheme_id}")
 async def get_specific_scheme(government_id: str, scheme_id: str) -> JSONResponse:
     govt = get_government(government_id)
@@ -236,7 +287,6 @@ async def get_specific_scheme(government_id: str, scheme_id: str) -> JSONRespons
     return JSONResponse(content=scheme)
 
 
-# Update a specific scheme
 @router.put("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
 async def update_scheme(
     government_id: str, scheme_id: str, scheme_data: SchemeCreate
@@ -278,7 +328,6 @@ async def update_scheme(
     )
 
 
-# Soft delete (mark as inactive) a specific scheme
 @router.delete("/{government_id}/schemes/{scheme_id}", response_model=MessageResponse)
 async def soft_delete_scheme(government_id: str, scheme_id: str) -> JSONResponse:
     govt = get_government(government_id)
@@ -303,7 +352,6 @@ async def soft_delete_scheme(government_id: str, scheme_id: str) -> JSONResponse
     )
 
 
-# Get beneficiaries of a specific scheme
 @router.get("/{government_id}/schemes/{scheme_id}/beneficiaries")
 async def get_scheme_beneficiaries(government_id: str, scheme_id: str) -> JSONResponse:
     # Check if the government exists
@@ -328,9 +376,9 @@ async def get_scheme_beneficiaries(government_id: str, scheme_id: str) -> JSONRe
         for citizen_id in scheme["beneficiaries"]:
             citizen = get_citizen(citizen_id)
             if citizen:
-                # Remove sensitive info
                 if "password" in citizen["account_info"]:
                     citizen["account_info"].pop("password")
+
                 beneficiaries.append(citizen)
 
     return JSONResponse(content=beneficiaries)

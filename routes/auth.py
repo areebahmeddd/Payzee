@@ -10,6 +10,7 @@ from models.api import (
 from models.citizen import Citizen
 from models.vendor import Vendor
 from models.government import Government
+from utils.auth import hash_password, verify_password, create_access_token
 from db import (
     save_citizen,
     save_government,
@@ -32,7 +33,7 @@ async def citizen_signup(data: CitizenSignup) -> JSONResponse:
     # Create citizen object
     citizen = Citizen(
         name=data.name,
-        password=data.password,
+        password=hash_password(data.password),
         email=data.email,
         phone=data.phone,
         id_type=data.id_type,
@@ -69,7 +70,7 @@ async def vendor_signup(data: VendorSignup) -> JSONResponse:
 
     vendor = Vendor(
         name=data.name,
-        password=data.password,
+        password=hash_password(data.password),
         email=data.email,
         gender=data.gender,
         business_name=data.business_name,
@@ -102,7 +103,7 @@ async def government_signup(data: GovernmentSignup) -> JSONResponse:
 
     government = Government(
         name=data.name,
-        password=data.password,
+        password=hash_password(data.password),
         email=data.email,
         jurisdiction=data.jurisdiction,
         govt_id=data.govt_id,
@@ -128,10 +129,16 @@ async def login(data: LoginRequest) -> JSONResponse:
     citizen_results = query_citizens_by_field("personal_info.id_number", data.id_number)
     if citizen_results:
         citizen = citizen_results[0]
-        if citizen["account_info"]["password"] == data.password:
+        if verify_password(data.password, citizen["account_info"]["password"]):
+            # Create JWT token
+            access_token = create_access_token(
+                data={"sub": citizen["account_info"]["id"], "user_type": "citizen"}
+            )
             return JSONResponse(
                 content={
                     "message": "Login successful",
+                    "access_token": access_token,
+                    "token_type": "bearer",
                     "user_id": citizen["account_info"]["id"],
                     "user_type": "citizen",
                 }
@@ -141,10 +148,15 @@ async def login(data: LoginRequest) -> JSONResponse:
     vendor_results = query_vendors_by_field("business_info.business_id", data.id_number)
     if vendor_results:
         vendor = vendor_results[0]
-        if vendor["account_info"]["password"] == data.password:
+        if verify_password(data.password, vendor["account_info"]["password"]):
+            access_token = create_access_token(
+                data={"sub": vendor["account_info"]["id"], "user_type": "vendor"}
+            )
             return JSONResponse(
                 content={
                     "message": "Login successful",
+                    "access_token": access_token,
+                    "token_type": "bearer",
                     "user_id": vendor["account_info"]["id"],
                     "user_type": "vendor",
                 }
@@ -154,10 +166,15 @@ async def login(data: LoginRequest) -> JSONResponse:
     govt_results = query_governments_by_field("account_info.govt_id", data.id_number)
     if govt_results:
         govt = govt_results[0]
-        if govt["account_info"]["password"] == data.password:
+        if verify_password(data.password, govt["account_info"]["password"]):
+            access_token = create_access_token(
+                data={"sub": govt["account_info"]["id"], "user_type": "government"}
+            )
             return JSONResponse(
                 content={
                     "message": "Login successful",
+                    "access_token": access_token,
+                    "token_type": "bearer",
                     "user_id": govt["account_info"]["id"],
                     "user_type": "government",
                 }

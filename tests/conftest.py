@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 from app import app
+from utils.auth import hash_password, create_access_token
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def mock_citizen_data():
             "id": "test-citizen-id",
             "name": "Test Citizen",
             "email": "test@citizen.com",
-            "password": "password123",
+            "password": hash_password("password123"),
             "created_at": "2025-05-10T10:00:00Z",
             "updated_at": "2025-05-10T10:00:00Z",
             "user_type": "citizen",
@@ -55,7 +56,7 @@ def mock_vendor_data():
             "id": "test-vendor-id",
             "name": "Test Vendor",
             "email": "test@vendor.com",
-            "password": "password123",
+            "password": hash_password("password123"),
             "created_at": "2025-05-10T10:00:00Z",
             "updated_at": "2025-05-10T10:00:00Z",
             "user_type": "vendor",
@@ -84,7 +85,7 @@ def mock_government_data():
             "id": "test-govt-id",
             "name": "Test Government",
             "email": "test@govt.com",
-            "password": "password123",
+            "password": hash_password("password123"),
             "jurisdiction": "Test State",
             "govt_id": "GOVT123456",
             "created_at": "2025-05-10T10:00:00Z",
@@ -136,3 +137,36 @@ def mock_transaction_data():
         "status": "completed",
         "timestamp": "2025-05-10T10:00:00Z",
     }
+
+
+@pytest.fixture
+def citizen_token():
+    token_data = {"sub": "test-citizen-id", "user_type": "citizen"}
+    return create_access_token(token_data)
+
+
+@pytest.fixture
+def vendor_token():
+    token_data = {"sub": "test-vendor-id", "user_type": "vendor"}
+    return create_access_token(token_data)
+
+
+@pytest.fixture
+def government_token():
+    token_data = {"sub": "test-govt-id", "user_type": "government"}
+    return create_access_token(token_data)
+
+
+@pytest.fixture
+def auth_headers_citizen(citizen_token):
+    return {"Authorization": f"Bearer {citizen_token}"}
+
+
+@pytest.fixture
+def auth_headers_vendor(vendor_token):
+    return {"Authorization": f"Bearer {vendor_token}"}
+
+
+@pytest.fixture
+def auth_headers_government(government_token):
+    return {"Authorization": f"Bearer {government_token}"}

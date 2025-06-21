@@ -2,12 +2,16 @@ from unittest.mock import patch, MagicMock
 
 
 class TestGovernmentRoutes:
-    def test_get_government_profile_success(self, client, mock_government_data):
+    def test_get_government_profile_success(
+        self, client, mock_government_data, auth_headers_government
+    ):
         with patch(
             "routes.government.get_government", return_value=mock_government_data
         ) as mock_get:
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id")
+            response = client.get(
+                "/api/v1/governments/test-govt-id", headers=auth_headers_government
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -17,10 +21,12 @@ class TestGovernmentRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("test-govt-id")
 
-    def test_get_government_profile_not_found(self, client):
+    def test_get_government_profile_not_found(self, client, auth_headers_government):
         with patch("routes.government.get_government", return_value=None) as mock_get:
             # Send request
-            response = client.get("/api/v1/governments/non-existent-id")
+            response = client.get(
+                "/api/v1/governments/non-existent-id", headers=auth_headers_government
+            )
 
             # Verify response is not found
             assert response.status_code == 404
@@ -29,7 +35,9 @@ class TestGovernmentRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("non-existent-id")
 
-    def test_update_government_profile_success(self, client, mock_government_data):
+    def test_update_government_profile_success(
+        self, client, mock_government_data, auth_headers_government
+    ):
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -40,7 +48,11 @@ class TestGovernmentRoutes:
         ):
             # Send update request
             update_data = {"name": "Updated Government", "email": "updated@govt.com"}
-            response = client.put("/api/v1/governments/test-govt-id", json=update_data)
+            response = client.put(
+                "/api/v1/governments/test-govt-id",
+                json=update_data,
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -50,7 +62,9 @@ class TestGovernmentRoutes:
             mock_get.assert_called_once_with("test-govt-id")
             mock_update.assert_called_once()
 
-    def test_delete_government_profile_success(self, client, mock_government_data):
+    def test_delete_government_profile_success(
+        self, client, mock_government_data, auth_headers_government
+    ):
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -60,7 +74,9 @@ class TestGovernmentRoutes:
             ) as mock_delete,
         ):
             # Send delete request
-            response = client.delete("/api/v1/governments/test-govt-id")
+            response = client.delete(
+                "/api/v1/governments/test-govt-id", headers=auth_headers_government
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -72,12 +88,17 @@ class TestGovernmentRoutes:
             mock_get.assert_called_once_with("test-govt-id")
             mock_delete.assert_called_once_with("test-govt-id")
 
-    def test_get_wallet_success(self, client, mock_government_data):
+    def test_get_wallet_success(
+        self, client, mock_government_data, auth_headers_government
+    ):
         with patch(
             "routes.government.get_government", return_value=mock_government_data
         ) as mock_get:
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id/wallet")
+            response = client.get(
+                "/api/v1/governments/test-govt-id/wallet",
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -88,7 +109,9 @@ class TestGovernmentRoutes:
             # Verify mock was called
             mock_get.assert_called_once_with("test-govt-id")
 
-    def test_get_all_citizens(self, client, mock_government_data, mock_citizen_data):
+    def test_get_all_citizens(
+        self, client, mock_government_data, mock_citizen_data, auth_headers_government
+    ):
         citizens_list = [mock_citizen_data]
 
         with (
@@ -100,7 +123,10 @@ class TestGovernmentRoutes:
             ) as mock_get_citizens,
         ):
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id/citizens")
+            response = client.get(
+                "/api/v1/governments/test-govt-id/citizens",
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -113,7 +139,7 @@ class TestGovernmentRoutes:
             mock_get_citizens.assert_called_once()
 
     def test_get_specific_citizen(
-        self, client, mock_government_data, mock_citizen_data
+        self, client, mock_government_data, mock_citizen_data, auth_headers_government
     ):
         with (
             patch(
@@ -125,7 +151,8 @@ class TestGovernmentRoutes:
         ):
             # Send request
             response = client.get(
-                "/api/v1/governments/test-govt-id/citizens/test-citizen-id"
+                "/api/v1/governments/test-govt-id/citizens/test-citizen-id",
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -137,7 +164,9 @@ class TestGovernmentRoutes:
             mock_get_govt.assert_called_once_with("test-govt-id")
             mock_get_citizen.assert_called_once_with("test-citizen-id")
 
-    def test_get_all_vendors(self, client, mock_government_data, mock_vendor_data):
+    def test_get_all_vendors(
+        self, client, mock_government_data, mock_vendor_data, auth_headers_government
+    ):
         vendors_list = [mock_vendor_data]
 
         with (
@@ -149,7 +178,10 @@ class TestGovernmentRoutes:
             ) as mock_get_vendors,
         ):
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id/vendors")
+            response = client.get(
+                "/api/v1/governments/test-govt-id/vendors",
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -161,7 +193,9 @@ class TestGovernmentRoutes:
             mock_get_govt.assert_called_once_with("test-govt-id")
             mock_get_vendors.assert_called_once()
 
-    def test_get_specific_vendor(self, client, mock_government_data, mock_vendor_data):
+    def test_get_specific_vendor(
+        self, client, mock_government_data, mock_vendor_data, auth_headers_government
+    ):
         with (
             patch(
                 "routes.government.get_government", return_value=mock_government_data
@@ -172,7 +206,8 @@ class TestGovernmentRoutes:
         ):
             # Send request
             response = client.get(
-                "/api/v1/governments/test-govt-id/vendors/test-vendor-id"
+                "/api/v1/governments/test-govt-id/vendors/test-vendor-id",
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -185,7 +220,11 @@ class TestGovernmentRoutes:
             mock_get_vendor.assert_called_once_with("test-vendor-id")
 
     def test_get_all_transactions(
-        self, client, mock_government_data, mock_transaction_data
+        self,
+        client,
+        mock_government_data,
+        mock_transaction_data,
+        auth_headers_government,
     ):
         transactions_list = [mock_transaction_data]
 
@@ -198,7 +237,10 @@ class TestGovernmentRoutes:
             ) as mock_get_transactions,
         ):
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id/transactions")
+            response = client.get(
+                "/api/v1/governments/test-govt-id/transactions",
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -210,7 +252,11 @@ class TestGovernmentRoutes:
             mock_get_transactions.assert_called_once()
 
     def test_get_specific_transaction(
-        self, client, mock_government_data, mock_transaction_data
+        self,
+        client,
+        mock_government_data,
+        mock_transaction_data,
+        auth_headers_government,
     ):
         with (
             patch(
@@ -222,7 +268,8 @@ class TestGovernmentRoutes:
         ):
             # Send request
             response = client.get(
-                "/api/v1/governments/test-govt-id/transactions/test-transaction-id"
+                "/api/v1/governments/test-govt-id/transactions/test-transaction-id",
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -234,7 +281,7 @@ class TestGovernmentRoutes:
             mock_get_transaction.assert_called_once_with("test-transaction-id")
 
     def test_create_scheme_success(
-        self, client, mock_government_data, mock_scheme_data
+        self, client, mock_government_data, mock_scheme_data, auth_headers_government
     ):
         with (
             patch(
@@ -270,7 +317,9 @@ class TestGovernmentRoutes:
                 "tags": ["test", "scheme"],
             }
             response = client.post(
-                "/api/v1/governments/test-govt-id/schemes", json=scheme_data
+                "/api/v1/governments/test-govt-id/schemes",
+                json=scheme_data,
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -284,7 +333,9 @@ class TestGovernmentRoutes:
             mock_save_scheme.assert_called_once_with("test-scheme-id", mock_scheme_data)
             mock_array_union.assert_called_once()
 
-    def test_get_schemes(self, client, mock_government_data, mock_scheme_data):
+    def test_get_schemes(
+        self, client, mock_government_data, mock_scheme_data, auth_headers_government
+    ):
         schemes_list = [mock_scheme_data]
 
         with (
@@ -296,7 +347,10 @@ class TestGovernmentRoutes:
             ) as mock_query_schemes,
         ):
             # Send request
-            response = client.get("/api/v1/governments/test-govt-id/schemes")
+            response = client.get(
+                "/api/v1/governments/test-govt-id/schemes",
+                headers=auth_headers_government,
+            )
 
             # Verify response
             assert response.status_code == 200
@@ -308,7 +362,9 @@ class TestGovernmentRoutes:
             mock_get_govt.assert_called_once_with("test-govt-id")
             mock_query_schemes.assert_called_once_with("govt_id", "test-govt-id")
 
-    def test_get_specific_scheme(self, client, mock_government_data, mock_scheme_data):
+    def test_get_specific_scheme(
+        self, client, mock_government_data, mock_scheme_data, auth_headers_government
+    ):
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
         scheme_data["govt_id"] = "test-govt-id"
@@ -323,7 +379,8 @@ class TestGovernmentRoutes:
         ):
             # Send request
             response = client.get(
-                "/api/v1/governments/test-govt-id/schemes/test-scheme-id"
+                "/api/v1/governments/test-govt-id/schemes/test-scheme-id",
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -336,7 +393,7 @@ class TestGovernmentRoutes:
             mock_get_scheme.assert_called_once_with("test-scheme-id")
 
     def test_update_scheme_success(
-        self, client, mock_government_data, mock_scheme_data
+        self, client, mock_government_data, mock_scheme_data, auth_headers_government
     ):
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
@@ -378,6 +435,7 @@ class TestGovernmentRoutes:
             response = client.put(
                 "/api/v1/governments/test-govt-id/schemes/test-scheme-id",
                 json=scheme_update,
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -392,7 +450,7 @@ class TestGovernmentRoutes:
             mock_save_scheme.assert_called_once()
 
     def test_soft_delete_scheme_success(
-        self, client, mock_government_data, mock_scheme_data
+        self, client, mock_government_data, mock_scheme_data, auth_headers_government
     ):
         # Ensure the scheme belongs to this government
         scheme_data = mock_scheme_data.copy()
@@ -412,7 +470,8 @@ class TestGovernmentRoutes:
         ):
             # Send delete request
             response = client.delete(
-                "/api/v1/governments/test-govt-id/schemes/test-scheme-id"
+                "/api/v1/governments/test-govt-id/schemes/test-scheme-id",
+                headers=auth_headers_government,
             )
 
             # Verify response
@@ -428,7 +487,12 @@ class TestGovernmentRoutes:
             assert saved_data["status"] == "inactive"
 
     def test_get_scheme_beneficiaries(
-        self, client, mock_government_data, mock_scheme_data, mock_citizen_data
+        self,
+        client,
+        mock_government_data,
+        mock_scheme_data,
+        mock_citizen_data,
+        auth_headers_government,
     ):
         # Ensure the scheme belongs to this government and has beneficiaries
         scheme_data = mock_scheme_data.copy()
@@ -448,7 +512,8 @@ class TestGovernmentRoutes:
         ):
             # Send request
             response = client.get(
-                "/api/v1/governments/test-govt-id/schemes/test-scheme-id/beneficiaries"
+                "/api/v1/governments/test-govt-id/schemes/test-scheme-id/beneficiaries",
+                headers=auth_headers_government,
             )
 
             # Verify response

@@ -1,10 +1,11 @@
 import io
 import qrcode
 import base64
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from fastapi.responses import JSONResponse
 from typing import Dict, Any
 from models.api import MessageResponse
+from utils.auth import require_vendor
 from db import (
     get_vendor,
     update_vendor,
@@ -16,13 +17,19 @@ from db import (
 router = APIRouter()
 
 
-# Get vendor profile
 @router.get("/{vendor_id}")
-async def get_vendor_profile(vendor_id: str) -> JSONResponse:
-    # Check if vendor existss
+async def get_vendor_profile(
+    vendor_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own profile.",
+        )
 
     # Remove sensitive information
     if "password" in vendor["account_info"]:
@@ -31,14 +38,21 @@ async def get_vendor_profile(vendor_id: str) -> JSONResponse:
     return JSONResponse(content=vendor)
 
 
-# Update vendor profile
 @router.put("/{vendor_id}", response_model=MessageResponse)
 async def update_vendor_profile(
-    vendor_id: str, data: Dict[str, Any] = Body(...)
+    vendor_id: str,
+    data: Dict[str, Any] = Body(...),
+    current_user: dict = Depends(require_vendor),
 ) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only update your own profile.",
+        )
 
     # Only update fields that are present
     update_data = {}
@@ -52,35 +66,54 @@ async def update_vendor_profile(
     return JSONResponse(content={"message": "Profile updated successfully"})
 
 
-# Delete vendor profile
 @router.delete("/{vendor_id}", response_model=MessageResponse)
-async def delete_vendor_profile(vendor_id: str) -> JSONResponse:
-    # Check if vendor exists
+async def delete_vendor_profile(
+    vendor_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    # Delete the vendor
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only delete your own profile.",
+        )
+
     delete_vendor(vendor_id)
     return JSONResponse(content={"message": "Vendor profile deleted successfully"})
 
 
-# Get wallet information
 @router.get("/{vendor_id}/wallet")
-async def get_wallet(vendor_id: str) -> JSONResponse:
+async def get_wallet(
+    vendor_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own wallet.",
+        )
 
     return JSONResponse(content=vendor["wallet_info"])
 
 
-# Generate QR code for payment
 @router.get("/{vendor_id}/generate-qr")
-async def generate_qr(vendor_id: str) -> JSONResponse:
+async def generate_qr(
+    vendor_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only generate QR for your own account.",
+        )
 
     # Generate QR code with user ID
     qr = qrcode.QRCode(
@@ -103,9 +136,20 @@ async def generate_qr(vendor_id: str) -> JSONResponse:
     return JSONResponse(content={"qr_code": img_str, "user_id": vendor_id})
 
 
-# Get transaction history
 @router.get("/{vendor_id}/transactions")
-async def get_transactions(vendor_id: str) -> JSONResponse:
+async def get_transactions(
+    vendor_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
+    vendor = get_vendor(vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own transactions.",
+        )
+
     # Find transactions where vendor is either sender or receiver
     from_transactions = query_transactions_by_field("from_id", vendor_id)
     to_transactions = query_transactions_by_field("to_id", vendor_id)
@@ -126,15 +170,20 @@ async def get_transactions(vendor_id: str) -> JSONResponse:
     return JSONResponse(content=transactions)
 
 
-# Get transaction by ID
 @router.get("/{vendor_id}/transactions/{transaction_id}")
-async def get_specific_transaction(vendor_id: str, transaction_id: str) -> JSONResponse:
-    # Check if vendor exists
+async def get_specific_transaction(
+    vendor_id: str, transaction_id: str, current_user: dict = Depends(require_vendor)
+) -> JSONResponse:
     vendor = get_vendor(vendor_id)
     if not vendor:
         raise HTTPException(status_code=404, detail="Vendor not found")
 
-    # Get the transaction
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only access your own transactions.",
+        )
+
     transaction = get_transaction(transaction_id)
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
@@ -148,9 +197,21 @@ async def get_specific_transaction(vendor_id: str, transaction_id: str) -> JSONR
     return JSONResponse(content=transaction)
 
 
-# Send vendor application to government
 @router.post("/{vendor_id}/application")
 async def send_application(
-    vendor_id: str, data: Dict[str, Any] = Body(...)
+    vendor_id: str,
+    data: Dict[str, Any] = Body(...),
+    current_user: dict = Depends(require_vendor),
 ) -> JSONResponse:
+    vendor = get_vendor(vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    if current_user["user_id"] != vendor_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied. You can only send applications from your own account.",
+        )
+
+    # TODO: Implement application logic
     pass

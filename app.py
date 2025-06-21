@@ -10,8 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 # from sentry_sdk.integrations.redis import RedisIntegration
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 from middleware import (
-    LoggingMiddleware,
+    AuthenticationMiddleware,
     ErrorHandlerMiddleware,
+    LoggingMiddleware,
     RateLimitMiddleware,
 )
 from db.redis_config import redis_client
@@ -46,8 +47,9 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
-app.add_middleware(LoggingMiddleware)
+app.add_middleware(AuthenticationMiddleware)
 app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # Add Prometheus middleware for metrics
