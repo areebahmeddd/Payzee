@@ -87,7 +87,7 @@ docker compose logs -f api
 
 ```bash
 # Build the API container
-docker build -t payzee-api -f docker/dev.Dockerfile .
+docker build -t payzee-api -f docker/Dockerfile.dev .
 
 # Run the API container
 docker run -p 8000:8000 --env-file .env payzee-api

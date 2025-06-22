@@ -15,12 +15,28 @@ receivers:
 - name: 'email-notifications'
   email_configs:
   - to: 'admin@yourcompany.com'
-    subject: '[Alert] {{ .GroupLabels.alertname }}'
-    body: |
-      Alert: {{ .GroupLabels.alertname }}
-      Status: {{ .Status }}
+    headers:
+      Subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+    html: |
+      {{ if gt (len .Alerts.Firing) 0 }}
+      <h3>🚨 FIRING ALERTS ({{ len .Alerts.Firing }}):</h3>
+      <ul>
+        {{ range .Alerts.Firing }}
+        <li><b>{{ .Labels.alertname }}</b> on {{ if .Labels.instance }}{{ .Labels.instance }}{{ else }}unknown{{ end }}<br/>
+            Summary: {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}No summary{{ end }}<br/>
+            Started: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+        </li>
+        {{ end }}
+      </ul>
+      {{ end }}
 
-      {{ range .Alerts }}
-      Instance: {{ .Labels.instance }}
-      Summary: {{ .Annotations.summary }}
+      {{ if gt (len .Alerts.Resolved) 0 }}
+      <h3>✅ RESOLVED ALERTS ({{ len .Alerts.Resolved }}):</h3>
+      <ul>
+        {{ range .Alerts.Resolved }}
+        <li><b>{{ .Labels.alertname }}</b> on {{ if .Labels.instance }}{{ .Labels.instance }}{{ else }}unknown{{ end }}<br/>
+            Resolved: {{ .EndsAt.Format "2006-01-02 15:04:05" }}
+        </li>
+        {{ end }}
+      </ul>
       {{ end }}

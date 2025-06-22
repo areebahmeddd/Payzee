@@ -40,9 +40,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             HTTP_REQUEST_LATENCY.labels(method=method, endpoint=path).observe(duration)
 
             # Log the request and response
-            logger.info(
-                f"Request completed: {method} {path} - Status: {status_code} - Time: {duration:.3f}s"
-            )
+            # logger.info(
+            #     f"Request completed: {method} {path} - Status: {status_code} - Time: {duration:.3f}s"
+            # )
 
             return response
         except Exception as e:

@@ -17,7 +17,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/prod.Dockerfile
+      dockerfile: docker/Dockerfile.prod
     environment:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
@@ -27,10 +27,10 @@ services:
       - api_data:/app/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-api.rule=Host(`payzee-api.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-api.entrypoints=websecure"
-      - "traefik.http.routers.payzee-api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.api.rule=Host(`payzee-api.1mindlabs.org`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 60s
@@ -59,10 +59,10 @@ services:
       - redisinsight_data:/db
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-redisinsight.rule=Host(`payzee-redisinsight.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-redisinsight.entrypoints=websecure"
-      - "traefik.http.routers.payzee-redisinsight.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-redisinsight.loadbalancer.server.port=5540"
+      - "traefik.http.routers.redisinsight.rule=Host(`payzee-redisinsight.1mindlabs.org`)"
+      - "traefik.http.routers.redisinsight.entrypoints=websecure"
+      - "traefik.http.routers.redisinsight.tls.certresolver=letsencrypt"
+      - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     depends_on:
       redis:
         condition: service_healthy
@@ -80,10 +80,10 @@ services:
       - prometheus_data:/prometheus
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-prometheus.rule=Host(`payzee-prometheus.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-prometheus.entrypoints=websecure"
-      - "traefik.http.routers.payzee-prometheus.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.rule=Host(`payzee-prometheus.1mindlabs.org`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     restart: unless-stopped
 
   alertmanager:
@@ -97,10 +97,10 @@ services:
       - alertmanager_data:/alertmanager
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-alertmanager.rule=Host(`payzee-alertmanager.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-alertmanager.entrypoints=websecure"
-      - "traefik.http.routers.payzee-alertmanager.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-alertmanager.loadbalancer.server.port=9093"
+      - "traefik.http.routers.alertmanager.rule=Host(`payzee-alertmanager.1mindlabs.org`)"
+      - "traefik.http.routers.alertmanager.entrypoints=websecure"
+      - "traefik.http.routers.alertmanager.tls.certresolver=letsencrypt"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
     restart: unless-stopped
 
   grafana:
@@ -115,10 +115,10 @@ services:
       - grafana_data:/var/lib/grafana
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-grafana.rule=Host(`payzee-grafana.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-grafana.entrypoints=websecure"
-      - "traefik.http.routers.payzee-grafana.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.rule=Host(`payzee-grafana.1mindlabs.org`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -129,18 +129,18 @@ services:
       - uptime_kuma_data:/app/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payzee-uptime.rule=Host(`payzee-uptime.1mindlabs.org`)"
-      - "traefik.http.routers.payzee-uptime.entrypoints=websecure"
-      - "traefik.http.routers.payzee-uptime.tls.certresolver=letsencrypt"
-      - "traefik.http.services.payzee-uptime.loadbalancer.server.port=3001"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`payzee-uptime.1mindlabs.org`)"
+      - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt"
+      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
     restart: unless-stopped
 
   traefik:
     image: traefik:v3.4
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "8080:8080" # Traefik Dashboard
     command:
       - --api.dashboard=true
       - --providers.docker=true

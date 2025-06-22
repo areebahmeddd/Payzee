@@ -1,13 +1,13 @@
-# import os
-# import sentry_sdk
+import os
 import time
+import sentry_sdk
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-# from sentry_sdk.integrations.fastapi import FastApiIntegration
-# from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 from middleware import (
     AuthenticationMiddleware,
@@ -23,14 +23,14 @@ from routes.government import router as government_router
 from routes.chat import router as chat_router
 
 # Initialize Sentry (Used in prod environment)
-# sentry_sdk.init(
-#     dsn=os.environ.get("SENTRY_DSN"),
-#     environment=os.environ.get("SENTRY_ENV"),
-#     integrations=[
-#         FastApiIntegration(),
-#         RedisIntegration(),
-#     ],
-# )
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    environment=os.environ.get("SENTRY_ENV"),
+    integrations=[
+        FastApiIntegration(),
+        RedisIntegration(),
+    ],
+)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -52,7 +52,7 @@ app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
-# Add Prometheus middleware for metrics
+# Add Prometheus middleware for metrics (Used in prod environment)
 app.add_middleware(
     PrometheusMiddleware,
     app_name="payzee",
