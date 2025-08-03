@@ -2,7 +2,7 @@ networks:
   default:
     name: payzee
     driver: overlay
-    # attachable: true
+    attachable: true
 
 volumes:
   api_data:
@@ -12,7 +12,16 @@ volumes:
   alertmanager_data:
   grafana_data:
   uptime_kuma_data:
-#   letsencrypt_data:
+  portainer-data:
+  letsencrypt_data:
+
+x-policy-template: &policy-template
+  update_config:
+    failure_action: rollback
+    parallelism: 1
+    order: stop-first
+  restart_policy:
+    condition: on-failure
 
 services:
   api:
@@ -25,23 +34,19 @@ services:
     volumes:
       - api_data:/app/data
     deploy:
+      <<: *policy-template
       replicas: 2
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-    #     max_replicas_per_node: 1
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
+        max_replicas_per_node: 1
       resources:
         limits:
           memory: 512M
-          cpus: "0.5"
+          cpus: "0.4"
         reservations:
           memory: 256M
-          cpus: "0.25"
+          cpus: "0.2"
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.api.rule=Host(`payzee-api.1mindlabs.org`)"
@@ -56,26 +61,22 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server --save 60 1
     volumes:
       - redis_data:/data
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: stop-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
       resources:
         limits:
           memory: 256M
-          cpus: "0.5"
+          cpus: "0.4"
         reservations:
           memory: 128M
-          cpus: "0.25"
+          cpus: "0.2"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -87,21 +88,17 @@ services:
     volumes:
       - redisinsight_data:/db
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
       resources:
         limits:
-          memory: 128M
+          memory: 64M
           cpus: "0.2"
         reservations:
-          memory: 64M
+          memory: 32M
           cpus: "0.1"
       labels:
         - "traefik.enable=true"
@@ -121,22 +118,18 @@ services:
       - ./monitoring/prometheus/alerts.yaml:/etc/prometheus/alerts.yml
       - prometheus_data:/prometheus
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
       resources:
         limits:
-          memory: 256M
-          cpus: "0.5"
-        reservations:
           memory: 128M
-          cpus: "0.25"
+          cpus: "0.3"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.prometheus.rule=Host(`payzee-prometheus.1mindlabs.org`)"
@@ -154,22 +147,18 @@ services:
       - ./monitoring/alertmanager/config.yaml:/etc/alertmanager/config.yml
       - alertmanager_data:/alertmanager
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
       resources:
         limits:
-          memory: 256M
-          cpus: "0.5"
-        reservations:
           memory: 128M
-          cpus: "0.25"
+          cpus: "0.3"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.alertmanager.rule=Host(`payzee-alertmanager.1mindlabs.org`)"
@@ -188,22 +177,18 @@ services:
       - ./monitoring/grafana/api.json:/etc/grafana/provisioning/dashboards/api.json
       - grafana_data:/var/lib/grafana
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
       resources:
         limits:
-          memory: 256M
-          cpus: "0.5"
-        reservations:
           memory: 128M
-          cpus: "0.25"
+          cpus: "0.3"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.grafana.rule=Host(`payzee-grafana.1mindlabs.org`)"
@@ -216,21 +201,17 @@ services:
     volumes:
       - uptime_kuma_data:/app/data
     deploy:
+      <<: *policy-template
       replicas: 1
-    #   placement:
-    #     constraints:
-    #       - node.role == worker
-      update_config:
-        failure_action: rollback
-        order: start-first
-      restart_policy:
-        condition: on-failure
+      placement:
+        constraints:
+          - node.role == worker
       resources:
         limits:
-          memory: 128M
+          memory: 64M
           cpus: "0.2"
         reservations:
-          memory: 64M
+          memory: 32M
           cpus: "0.1"
       labels:
         - "traefik.enable=true"
@@ -239,53 +220,89 @@ services:
         - "traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt"
         - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
 
-#   traefik:
-#     image: traefik:v3.4
-#     ports:
-#       - "80:80"
-#       - "443:443"
-#       - "8080:8080"
-#     command:
-#       - --api.dashboard=true
-#       - --providers.swarm=true
-#       - --providers.swarm.exposedbydefault=false
-#       - --providers.swarm.network=payzee
-#       - --entrypoints.web.address=:80
-#       - --entrypoints.websecure.address=:443
-#       # Redirect HTTP to HTTPS
-#       - --entrypoints.web.http.redirections.entrypoint.to=websecure
-#       - --entrypoints.web.http.redirections.entrypoint.scheme=https
-#       - --entrypoints.web.http.redirections.entrypoint.permanent=true
-#       # Let's Encrypt setup
-#       - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-#       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-#       - --certificatesresolvers.letsencrypt.acme.email=contact@1mindlabs.org
-#       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-#       - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
-#       - --log.level=INFO
-#       - --ping=true
-#     volumes:
-#       - /var/run/docker.sock:/var/run/docker.sock
-#       - letsencrypt_data:/letsencrypt
-#     deploy:
-#       replicas: 1
-#       placement:
-#         constraints:
-#           - node.role == manager
-#       update_config:
-#         failure_action: rollback
-#         order: start-first
-#       restart_policy:
-#         condition: on-failure
-#       resources:
-#         limits:
-#           memory: 128M
-#           cpus: "0.2"
-#         reservations:
-#           memory: 64M
-#           cpus: "0.1"
-#     healthcheck:
-#       test: ["CMD", "traefik", "healthcheck", "--ping"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
+  traefik:
+    image: traefik:v3.5
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    command:
+      - --api.dashboard=true
+      - --providers.swarm=true
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.network=payzee
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Redirect HTTP to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      # Let's Encrypt setup
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.letsencrypt.acme.email=contact@1mindlabs.org
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --log.level=INFO
+      - --ping=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - letsencrypt_data:/letsencrypt
+    deploy:
+      <<: *policy-template
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.2"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  portainer-agent:
+    image: portainer/agent:alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    deploy:
+      <<: *policy-template
+      mode: global
+      resources:
+        limits:
+          memory: 64M
+          cpus: "0.2"
+        reservations:
+          memory: 32M
+          cpus: "0.1"
+
+  portainer:
+    image: portainer/portainer-ce:alpine
+    command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify --http-enabled
+    volumes:
+      - portainer-data:/data
+    deploy:
+      <<: *policy-template
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 64M
+          cpus: "0.2"
+        reservations:
+          memory: 32M
+          cpus: "0.1"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.portainer.rule=Host(`payzee-portainer.1mindlabs.org`)"
+        - "traefik.http.routers.portainer.entrypoints=websecure"
+        - "traefik.http.routers.portainer.tls.certresolver=letsencrypt"
+        - "traefik.http.services.portainer.loadbalancer.server.port=9002"

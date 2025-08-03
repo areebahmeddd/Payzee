@@ -11,7 +11,6 @@ volumes:
   alertmanager_data:
   grafana_data:
   uptime_kuma_data:
-  letsencrypt_data:
 
 services:
   api:
@@ -25,12 +24,6 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
       - api_data:/app/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`payzee-api.1mindlabs.org`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api.loadbalancer.server.port=8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -43,7 +36,7 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server --save 60 1
     volumes:
       - redis_data:/data
     healthcheck:
@@ -57,12 +50,6 @@ services:
     image: redis/redisinsight:latest
     volumes:
       - redisinsight_data:/db
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.redisinsight.rule=Host(`payzee-redisinsight.1mindlabs.org`)"
-      - "traefik.http.routers.redisinsight.entrypoints=websecure"
-      - "traefik.http.routers.redisinsight.tls.certresolver=letsencrypt"
-      - "traefik.http.services.redisinsight.loadbalancer.server.port=5540"
     depends_on:
       redis:
         condition: service_healthy
@@ -78,12 +65,6 @@ services:
       - ./monitoring/prometheus/config.yaml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/alerts.yaml:/etc/prometheus/alerts.yml
       - prometheus_data:/prometheus
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`payzee-prometheus.1mindlabs.org`)"
-      - "traefik.http.routers.prometheus.entrypoints=websecure"
-      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     restart: unless-stopped
 
   alertmanager:
@@ -95,12 +76,6 @@ services:
     volumes:
       - ./monitoring/alertmanager/config.yaml:/etc/alertmanager/config.yml
       - alertmanager_data:/alertmanager
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.alertmanager.rule=Host(`payzee-alertmanager.1mindlabs.org`)"
-      - "traefik.http.routers.alertmanager.entrypoints=websecure"
-      - "traefik.http.routers.alertmanager.tls.certresolver=letsencrypt"
-      - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
     restart: unless-stopped
 
   grafana:
@@ -113,12 +88,6 @@ services:
       - ./monitoring/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
       - ./monitoring/grafana/api.json:/etc/grafana/provisioning/dashboards/api.json
       - grafana_data:/var/lib/grafana
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`payzee-grafana.1mindlabs.org`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -127,46 +96,4 @@ services:
     image: louislam/uptime-kuma:latest
     volumes:
       - uptime_kuma_data:/app/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.uptime-kuma.rule=Host(`payzee-uptime.1mindlabs.org`)"
-      - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
-      - "traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt"
-      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
-    restart: unless-stopped
-
-  traefik:
-    image: traefik:v3.4
-    ports:
-      - "80:80" # HTTP
-      - "443:443" # HTTPS
-      - "8080:8080" # Traefik Dashboard
-    command:
-      - --api.dashboard=true
-      - --api.insecure=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=payzee
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      # Redirect HTTP to HTTPS
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.web.http.redirections.entrypoint.permanent=true
-      # Let's Encrypt setup
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.letsencrypt.acme.email=contact@1mindlabs.org
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.letsencrypt.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
-      - --log.level=INFO
-      - --ping=true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - letsencrypt_data:/letsencrypt
-    healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     restart: unless-stopped
