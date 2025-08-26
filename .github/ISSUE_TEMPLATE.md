@@ -10,7 +10,7 @@
 
 ### Expected Behavior
 
-<!-- Provide a clear and concise description of what you expected to happen. -->
+<!-- Describe what you expected to happen. -->
 
 ### Screenshots
 
@@ -19,5 +19,5 @@
 ### Environment
 
 - **OS**: <!-- Example: Windows 11, macOS 15 -->
+- **Browser**: <!-- Example: Chrome 126, Firefox 141 -->
 - **Python Version**: <!-- Example: Python 3.11.9 -->
-- **Branch**: <!-- Example: main, develop -->
