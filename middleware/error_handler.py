@@ -5,7 +5,6 @@ from starlette.exceptions import HTTPException
 
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
-    """Middleware to handle errors and exceptions."""
 
     async def dispatch(self, request, call_next):
         try:
