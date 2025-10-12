@@ -7,7 +7,6 @@ from starlette.exceptions import HTTPException
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
-        try:
             response = await call_next(request)
 
             # Handle 404 response status
@@ -16,9 +15,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 return HTMLResponse(content=html_file, status_code=404)
 
             return response
-        except HTTPException as exc:
             # if exc.status_code == 404:
             #     return JSONResponse(status_code=404, content={"detail": "Not found"})
 
             # If it's a different HTTP exception, re-raise it
-            raise exc
