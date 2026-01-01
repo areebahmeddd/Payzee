@@ -30,7 +30,7 @@ jobs:
       tests-passed: ${{ steps.check-tests.outputs.passed }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install python
         uses: actions/setup-python@v6
@@ -63,7 +63,7 @@ jobs:
     if: needs.setup.outputs.tests-passed == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
