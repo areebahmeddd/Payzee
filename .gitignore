@@ -89,3 +89,7 @@ target/
 cython_debug/
 *.manifest
 *.spec
+
+# Helm
+k8s/helm/values-secret.yaml
+k8s/helm/values-override.yaml

@@ -1,0 +1,71 @@
+# API
+api:
+  image:
+    repository: areebahmeddd/payzee
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8000
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 400m
+    requests:
+      memory: 256Mi
+      cpu: 200m
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+# Redis
+redis:
+  image:
+    repository: redis
+    tag: 8.6-alpine
+    pullPolicy: IfNotPresent
+  port: 6379
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 400m
+    requests:
+      memory: 128Mi
+      cpu: 200m
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""   # leave empty to use cluster default
+
+# RedisInsight
+redisinsight:
+  enabled: true
+  image:
+    repository: redis/redisinsight
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 5540
+  resources:
+    limits:
+      memory: 256Mi
+      cpu: 200m
+    requests:
+      memory: 128Mi
+      cpu: 100m
+
+# Ingress (Traefik)
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  host: payzee-api.1mindlabs.org
+  tls:
+    enabled: true
+    certResolver: letsencrypt   # Traefik certResolver annotation
+
+# Secrets — override with --set or a values file
+secrets:
+  geminiApiKey: ""
+  jwtSecretKey: ""
+  sentryDsn: ""
+  sentryEnv: "production"

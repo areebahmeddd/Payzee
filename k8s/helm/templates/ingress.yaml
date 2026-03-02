@@ -1,0 +1,31 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "payzee.fullname" . }}
+  labels:
+    {{- include "payzee.labels" . | nindent 4 }}
+  annotations:
+    {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.certResolver }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.ingress.tls.certResolver | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "payzee.fullname" . }}-api
+                port:
+                  number: {{ .Values.api.port }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ include "payzee.fullname" . }}-tls
+  {{- end }}
+{{- end }}

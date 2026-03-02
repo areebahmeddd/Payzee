@@ -1,0 +1,14 @@
+apiVersion: v2
+name: payzee
+description: Payzee - A digital payment and government welfare disbursement platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - govtech
+  - payments
+  - fastapi
+  - redis
+maintainers:
+  - name: Areeb Ahmed
+    email: hi@areeb.dev

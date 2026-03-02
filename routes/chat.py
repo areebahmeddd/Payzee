@@ -72,7 +72,7 @@ def convert_audio_to_text(file_path: str) -> str:
         audio_file = client.files.upload(path=file_path)
         prompt = "Transcribe the following audio into clear and readable text."
         response = client.models.generate_content(
-            model="gemini-2.0-flash", contents=[prompt, audio_file]
+            model="gemini-2.5-flash", contents=[prompt, audio_file]
         )
         return response.text
     except Exception as e:
@@ -83,7 +83,7 @@ def convert_audio_to_text(file_path: str) -> str:
 
 def generate_response(user_query: str, user_profile: dict) -> str:
     try:
-        chat = client.chats.create(model="gemini-2.0-flash")
+        chat = client.chats.create(model="gemini-2.5-flash")
 
         # Load government schemes and market data
         scheme_data = ""

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: payzee
-  labels:
-    app.kubernetes.io/name: payzee-api
-    app.kubernetes.io/part-of: payzee

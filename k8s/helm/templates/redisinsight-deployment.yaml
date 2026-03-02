@@ -1,0 +1,31 @@
+{{- if .Values.redisinsight.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "payzee.fullname" . }}-redisinsight
+  labels:
+    {{- include "payzee.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redisinsight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "payzee.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: redisinsight
+  template:
+    metadata:
+      labels:
+        {{- include "payzee.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: redisinsight
+    spec:
+      containers:
+        - name: redisinsight
+          image: "{{ .Values.redisinsight.image.repository }}:{{ .Values.redisinsight.image.tag }}"
+          imagePullPolicy: {{ .Values.redisinsight.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.redisinsight.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.redisinsight.resources | nindent 12 }}
+      restartPolicy: Always
+{{- end }}

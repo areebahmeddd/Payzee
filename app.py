@@ -23,14 +23,14 @@ from routes.government import router as government_router
 from routes.chat import router as chat_router
 
 # Initialize Sentry (Used in prod environment)
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    environment=os.environ.get("SENTRY_ENV"),
-    integrations=[
-        FastApiIntegration(),
-        RedisIntegration(),
-    ],
-)
+# sentry_sdk.init(
+#     dsn=os.environ.get("SENTRY_DSN"),
+#     environment=os.environ.get("SENTRY_ENV"),
+#     integrations=[
+#         FastApiIntegration(),
+#         RedisIntegration(),
+#     ],
+# )
 
 # Initialize FastAPI app
 app = FastAPI(

@@ -1,0 +1,18 @@
+{{- if .Values.redisinsight.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "payzee.fullname" . }}-redisinsight
+  labels:
+    {{- include "payzee.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redisinsight
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "payzee.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redisinsight
+  ports:
+    - port: {{ .Values.redisinsight.port }}
+      targetPort: {{ .Values.redisinsight.port }}
+      protocol: TCP
+{{- end }}

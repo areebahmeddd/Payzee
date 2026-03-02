@@ -60,7 +60,7 @@ services:
       retries: 3
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:8.6-alpine
     command: redis-server --save 60 1
     volumes:
       - redis_data:/data
